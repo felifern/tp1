@@ -387,7 +387,7 @@ bool entero_imprimir(const entero_t *entero){
 bool entero_dividir(entero_t *dividendo, const entero_t *divisor, entero_t **resto) { // dividendo mayor que divisor
     if(divisor == NULL || dividendo == NULL) {
         return false;
-    }
+    }// PORFAVOR CHEQUEA QUE ESTO ESTE BIEN. habria que ponerse de acuerdo con las invariantes.
 
     /*printf("\n");
     printf("divisor:");

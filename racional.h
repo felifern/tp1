@@ -1,8 +1,10 @@
 #ifndef RACIONAL_H
 #define RACIONAL_H
-
-#include "entero.h"
 #include <stdbool.h>
+#include "entero.h"
+
+
+
 //tipo
 typedef struct racional racional_t;
 
