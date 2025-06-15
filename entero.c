@@ -10,10 +10,21 @@
 #define LSB 0x1
 #define MSB32 0x80000000
 
+/*
+    No hay nulos.
+    No estan normalizados (sin 0s adelante).
+
+*/
+
 typedef struct {
     uint32_t *d;
     size_t n;
 } entero_t;
+
+
+entero_t entero_factorial(entero_t *n);// hay que implementar. (feli)
+
+
 
 entero_t *_crear(size_t k){ // devuelve un entero_t con el los digitos en 0 de cantidad k 
     uint32_t *aux;
@@ -222,39 +233,30 @@ char *entero_a_bcd(const entero_t *entero, size_t *n){
 bool entero_sumar(entero_t *a, const entero_t *b){// quedo excelente solo hay que ver lo de la mascara (deberia andar con la mascara pero no funca)
     int carry = 0;
     size_t i;
-    for ( i = 0; i<(a->n) && i<(b->n) ; i++){// porque no funca con ~PRIMEROS32 ? no se 
-        uint64_t aux = (uint64_t)a->d[i] + (uint64_t)b->d[i] + carry;
-        if ((aux & (OVERFLOW_MASK)) != 0){
-            carry = 1;
-        }
-        else{
-            carry = 0;
-        }
-        a->d[i] = (aux & PRIMEROS_32_DIGITOS);
-    }
-    while (i<(a->n)){//caso a mas digitos
-        uint64_t aux = (uint64_t)a->d[i] + carry;
-        if ((aux & (OVERFLOW_MASK)) != 0){
-            carry = 1;
-        }
-        else 
-            carry = 0;
-        a->d[i]= (aux & PRIMEROS_32_DIGITOS);
-        i++;
-    }
     if(a->n < b->n){ //caso b mas digitos
         if (_redimensionar(a, b->n) == false)
-            return false;
+        return false;
     }
-    while (i<(b->n)){
-        uint64_t aux = (uint64_t)b->d[i] + carry;
-        if ((aux & (OVERFLOW_MASK)) != 0){
-            carry = 1;
+    for ( i = 0; i<(a->n); i++){
+        if(i<(b->n)){
+            uint64_t aux = (uint64_t)a->d[i] + (uint64_t)b->d[i] + carry;
+            if ((aux & (OVERFLOW_MASK)) != 0){
+                carry = 1;
+            }
+            else{
+                carry = 0;
+            }
+            a->d[i] = (aux & PRIMEROS_32_DIGITOS);
         }
-        else 
-            carry = 0;
-        a->d[i] = (aux & PRIMEROS_32_DIGITOS);
-        i++;
+        else{
+            uint64_t aux = (uint64_t)a->d[i] + carry;
+            if ((aux & (OVERFLOW_MASK)) != 0){
+                carry = 1;
+            }
+            else 
+                carry = 0;
+            a->d[i]= (aux & PRIMEROS_32_DIGITOS);
+        }
     }
     if (carry != 0){
         if(_redimensionar(a, (a->n) + 1) == false)
@@ -265,38 +267,45 @@ bool entero_sumar(entero_t *a, const entero_t *b){// quedo excelente solo hay qu
 }
 
 bool entero_restar(entero_t *a, const entero_t *b){// literalmente el anterior pero con un menos
-    int carry = 0;
+    if(entero_comparar(a,b) < 0){
+        return false;
+    }
     size_t i;
-    for ( i = 0; i<(a->n) && i<(b->n) ; i++){// porque no funca con ~PRIMEROS32 ? no se 
-        uint64_t aux = (uint64_t)a->d[i] - (uint64_t)b->d[i] - carry;
-        if ((aux & (OVERFLOW_MASK)) != 0){
-            carry = 1;
+    
+    for(i = 0; i < a->n; i++){
+        if(a->d[a->n - i - 1] == 0){
+            continue;
+        }
+        break;
+    }
+
+    if(!_redimensionar(a, (a->n) - i)){ //
+        return false;
+    }
+
+    int carry = 0;
+    
+    for (i = 0; i<(a->n); i++){
+        if(i<(b->n)){
+            uint64_t aux = (uint64_t)a->d[i] - (uint64_t)b->d[i] - carry;
+            if ((aux & OVERFLOW_MASK) != 0){
+                carry = 1;
+            }
+            else{
+                carry = 0;
+            }
+            a->d[i] = (aux & PRIMEROS_32_DIGITOS);
         }
         else{
-            carry = 0;
+            uint64_t aux = (uint64_t)a->d[i] - carry;
+            if ((aux & OVERFLOW_MASK) != 0){
+                carry = 1;
+            }
+            else{
+                carry = 0;
+            }
+            a->d[i] = (aux & PRIMEROS_32_DIGITOS);
         }
-        a->d[i] = (aux & PRIMEROS_32_DIGITOS);
-    }
-    while (i<(a->n)){//caso a mas digitos
-        uint64_t aux = (uint64_t)a->d[i] - carry;
-        a->d[i]= (aux & PRIMEROS_32_DIGITOS);
-        carry = 0;
-        i++;
-    }
-    if(a->n < b->n){ //caso b mas digitos
-        if (_redimensionar(a, b->n) == false)
-            return false;
-    }
-    while (i<(b->n)){
-        uint64_t aux = (uint64_t)b->d[i] - carry;
-        a->d[i]= (aux & PRIMEROS_32_DIGITOS);
-        carry = 0;
-        i++;
-    }
-    if (carry != 0){
-        if(_redimensionar(a, (a->n) + 1) == false)
-            return false;
-        a->d [a->n - 1] = carry;
     }
     return true;
 
@@ -396,7 +405,7 @@ bool entero_dividir(entero_t *dividendo, const entero_t *divisor, entero_t **res
     printf("dividendo:");
     entero_imprimir(dividendo);
     printf("\n");
-*/
+    */
     entero_t *d = entero_clonar(divisor);
     entero_t *r = entero_clonar(dividendo);
     entero_t *q = _crear(1);

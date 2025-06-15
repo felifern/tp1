@@ -18,6 +18,18 @@ struct racional {
 
 typedef struct racional racional_t;
 
+racional_t racional_factorial(racional_t *n);// hay que implementar. (para cuando denominador = 1)
+
+racional_t racional_abs(racional_t *q);// hay que implementar.
+
+racional_t racional_inverso(racional_t *q);// hay que implementar.
+
+racional_t racional_pi ();
+racional_t racional_e ();
+racional_t racional_phi ();
+
+
+
 bool racional_imprimir(const racional_t *q);
 
 entero_t *maximo_comun_divisor(const entero_t *n,const entero_t *d){
