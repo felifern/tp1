@@ -24,6 +24,7 @@ int entero_comparar(const entero_t *a, const entero_t *b);//
 bool entero_desplazar_derecha(entero_t *e);//
 bool entero_desplazar_izquierda(entero_t *e);//
 bool entero_sumar(entero_t *a, const entero_t *b);//
+bool entero_factorial(entero_t *n);
 bool entero_restar(entero_t *a, const entero_t *b);//
 bool entero_multiplicar(entero_t *a, const entero_t *b);//
 bool entero_dividir(entero_t *a, const entero_t *b, entero_t **resto);//

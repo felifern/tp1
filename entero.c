@@ -22,17 +22,6 @@ typedef struct {
 } entero_t;
 
 
-entero_t *entero_factorial(entero_t *n){
-    entero_t *cero = entero_cero();
-    entero_t *uno = entero_uno();
-    if(entero_comparar(n,  cero) == 0 || entero_comparar(n,  uno) == 0){
-        entero_destruir(cero);
-        return uno;
-    }
-    return(entero_multiplicar(n, entero_factorial(entero_restar(n,uno))));
-}// hay que implementar. (feli)
-
-
 
 entero_t *_crear(size_t k){ // devuelve un entero_t con el los digitos en 0 de cantidad k 
     uint32_t *aux;
@@ -558,3 +547,43 @@ bool entero_multiplicar(entero_t *a, const entero_t *b) {
 
     return true;
 }
+
+bool entero_factorial(entero_t *n){
+    if(n == NULL) return false;
+    entero_t *cero = entero_cero();
+    entero_t *uno = entero_uno();
+    if(entero_comparar(n,  cero) == 0 || entero_comparar(n,  uno) == 0){
+        free(n->d);
+        n->n = 1;
+        n->d = uno->d;
+        free(uno);
+        entero_destruir(cero);
+        return true;
+    }
+    else{
+        entero_t *nc = entero_clonar(n);
+        entero_restar(nc,uno);
+        entero_factorial(nc);
+        entero_multiplicar(n, nc);
+        entero_destruir(cero);
+        entero_destruir(uno);
+        entero_destruir(nc);
+        return true;
+    }
+}// hay que implementar. (feli) HAY QUE HACER LAS VERIFICACIONES PERTINENTES cualquiera.
+
+
+entero_t *entero_factorial2(entero_t *n){
+    entero_t *cero = entero_cero();
+    entero_t *uno = entero_uno();
+    if(entero_comparar(n,  cero) == 0 || entero_comparar(n,  uno) == 0){
+        entero_destruir(cero);
+        return uno;
+    }
+    else{
+        entero_t *nc = entero_clonar(n);
+        entero_restar(nc,uno);
+        entero_multiplicar(n, entero_factorial(nc));
+        return n;
+    }
+}// hay que implementar. (feli) HAY QUE HACER LAS VERIFICACIONES PERTINENTES cualquiera.
