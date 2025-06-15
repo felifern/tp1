@@ -20,13 +20,6 @@ typedef struct racional racional_t;
 
 racional_t racional_factorial(racional_t *n);// hay que implementar. (para cuando denominador = 1)
 
-racional_t racional_abs(racional_t *q);// hay que implementar.
-
-racional_t racional_inverso(racional_t *q);// hay que implementar.
-
-racional_t racional_pi ();
-racional_t racional_e ();
-racional_t racional_phi ();
 
 
 
@@ -370,5 +363,38 @@ racional_t *racional_dividir(const racional_t *q, const racional_t *r){
     }
     if(!racional_reducir(qc)) return NULL;
     return qc;  
+}
+
+racional_t *racional_inverso(racional_t *q){
+    bool s_inverso = (q->s == true)? false : true;
+    racional_t  *q_inv = racional_crear(s_inverso, q->n, q->d);
+    return q_inv;
+}
+
+racional_t *racional_abs(racional_t *q){
+    racional_t *q_abs = racional_crear(0,q->n, q->d);
+    return q_abs;
+}
+
+racional_t *racional_pi (){
+    char *n = {1,3,1,4,1,6};
+    char *d = {1,0,0,0,0,0};
+    entero_t *num = entero_desde_bcd(n,6);
+    entero_t *den = entero_desde_bcd(d,6);
+    return racional_crear(0,n,d); 
+}
+racional_t *racional_e (){
+    char *n = {2,7,1,8,2};
+    char *d = {1,0,0,0,0};
+    entero_t *num = entero_desde_bcd(n,5);
+    entero_t *den = entero_desde_bcd(d,5);
+    return racional_crear(0,n,d); 
+}
+racional_t *racional_phi (){
+    char *n = {1,6,1,8};
+    char *d = {1,0,0,0};
+    entero_t *num = entero_desde_bcd(n,4);
+    entero_t *den = entero_desde_bcd(d,4);
+    return racional_crear(0,n,d); 
 }
 
