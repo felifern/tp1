@@ -18,10 +18,6 @@ struct racional {
 
 typedef struct racional racional_t;
 
-racional_t racional_factorial(racional_t *n);// hay que implementar. (para cuando denominador = 1)
-
-
-
 
 bool racional_imprimir(const racional_t *q);
 
@@ -365,36 +361,70 @@ racional_t *racional_dividir(const racional_t *q, const racional_t *r){
     return qc;  
 }
 
-racional_t *racional_inverso(racional_t *q){
-    bool s_inverso = (q->s == true)? false : true;
-    racional_t  *q_inv = racional_crear(s_inverso, q->n, q->d);
-    return q_inv;
+racional_t *racional_factorial(racional_t *q){
+    if (q->d != 1 || q->s == 1) return NULL;
+    entero_t *nuevo_n = entero_clonar(q->n);
+    if (nuevo_n == NULL) return NULL;
+
+    if (!entero_factorial(nuevo_n)){
+        entero_destruir(nuevo_n);
+        return NULL;
+    } 
+    racional_t *nuevo_q = racional_crear(q->s,nuevo_n,q->d);
+    if (nuevo_q == NULL){
+        entero_destruir(nuevo_n);
+        return NULL;
+    }
+    return nuevo_q;
 }
 
 racional_t *racional_abs(racional_t *q){
     racional_t *q_abs = racional_crear(0,q->n, q->d);
+    if (q_abs == NULL) return NULL;
     return q_abs;
+}
+
+racional_t *racional_inverso(racional_t *q){
+    bool s_inverso = (q->s == true)? false : true;
+    racional_t  *q_inv = racional_crear(s_inverso, q->n, q->d);
+    if (q_inv == NULL) return NULL;
+    return q_inv;
 }
 
 racional_t *racional_pi (){
     char *n = {1,3,1,4,1,6};
     char *d = {1,0,0,0,0,0};
     entero_t *num = entero_desde_bcd(n,6);
+    if (num == NULL) return NULL;
     entero_t *den = entero_desde_bcd(d,6);
+    if (den == NULL){
+        entero_destruir(num);
+        return NULL;
+    }
     return racional_crear(0,n,d); 
 }
 racional_t *racional_e (){
     char *n = {2,7,1,8,2};
     char *d = {1,0,0,0,0};
     entero_t *num = entero_desde_bcd(n,5);
+    if (num == NULL) return NULL;
     entero_t *den = entero_desde_bcd(d,5);
+    if (den == NULL){
+        entero_destruir(num);
+        return NULL;
+    }
     return racional_crear(0,n,d); 
 }
 racional_t *racional_phi (){
     char *n = {1,6,1,8};
     char *d = {1,0,0,0};
     entero_t *num = entero_desde_bcd(n,4);
+    if (num == NULL) return NULL;
     entero_t *den = entero_desde_bcd(d,4);
+    if (den == NULL){
+        entero_destruir(num);
+        return NULL;
+    }
     return racional_crear(0,n,d); 
 }
 
