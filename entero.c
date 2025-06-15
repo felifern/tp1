@@ -22,7 +22,15 @@ typedef struct {
 } entero_t;
 
 
-entero_t entero_factorial(entero_t *n);// hay que implementar. (feli)
+entero_t *entero_factorial(entero_t *n){
+    entero_t *cero = entero_cero();
+    entero_t *uno = entero_uno();
+    if(entero_comparar(n,  cero) == 0 || entero_comparar(n,  uno) == 0){
+        entero_destruir(cero);
+        return uno;
+    }
+    return(entero_multiplicar(n, entero_factorial(entero_restar(n,uno))));
+}// hay que implementar. (feli)
 
 
 
