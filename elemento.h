@@ -7,13 +7,10 @@ typedef enum tipo tipo;
 typedef struct {
     char *elemento;
     tipo tipo;
-    //void *funcion;
-}elemento_t; //Si agrego void *funcion deberia hacerse algun wrapper para poder englobar todo. (creo)
+}elemento_t; 
 /*
-de todas formas si hay que implementar una lista con los punteros a funciones 
-no tiene mucho sentido agregarlo aca en el struct. CREOOOOOO hay que pensar con la cabezaaaaaaaaaaaa.
-
-pero es buena la idea.
+ok, correccion semi definitiva, no vamos a poner el puntero void aca. esto porque como de todas formas tenemos que
+hacer una lista con los operadores y funciones que contengan los punteros es al pedo.
 */
 
 
