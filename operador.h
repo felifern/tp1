@@ -4,11 +4,16 @@
 
 typedef struct{
     char *operador;
-    void (*funcion) (void **argumentos);
+    //void (*funcion)(void **argumentos); esto estaba asi pero si suponemos que ser reciben racional_t* y devolvemos racional_t*
+    racional_t *(*funcion) (racional_t **a);//podemos hacero esto.
     int aridad;
     int prioridad;
     char *descripcion;
 }operador_t;
+
+
+
+
 // mmmmmmmmmmm. la idea seria pasar argumentos con void** cada funcion particular sabe que argumentos usar.
 // dejo un ejemplo en el main.c 
 
