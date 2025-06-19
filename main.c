@@ -50,8 +50,9 @@ cola_t *lee_una_linea(){ //recibe linea "123+fact(5*3)" y guarda en una cola {"1
             elemento[1] = '\0';
             cola_encolar(cola, elemento);
         }
-        
-
+        else{
+            c = getchar();
+        }
     }
     return cola;
 }
