@@ -6,8 +6,57 @@
 #include "lista.h"
 #include "operador.h"
 
+//hay que hacer una funcion que me lea la linea de stdin y me devuelva un char* con esa linea (con fgets supongo?)
+cola_t *lee_una_linea(char* input){ //recibe linea "123+fact(5*3)" y guarda en una cola {"123","+","fact","(","5","*","3",")"}
 
-cola_t *leer_linea(); // lee la linea y la guarda en una cola. ej: {"123", "+", "2", "*", "5", "+", "fact", "6"} (desactualizado pero es como la idea)
+    cola_t *cola = cola_crear();
+    if (cola == NULL) return NULL;
+    size_t i = 0;
+    char elemento[100]; //obviamente esta mal, habria que usar mem dinamica pero hay que ver como hacer eso
+    //oooo podríamos hacer en la funcion que lea la linea, que me devuelva el numero de caracteres
+    //de esa linea yyy entonces hacemos un malloc para el elemento con esa cantidad.
+    //sería para asegurarnos que entre cada uno pero nada, tmp es muy eficiente (pedimos muucha memoria de mas en la mayoria de casos)
+    //por ej "123*(545-234)" leo y devuelvo n=13 entonces hago q el tamaño max del elemento es 13.
+    
+    while(input[i] != '\n' && input[i] != '\0') {
+        
+        if (input[i] == ' '){
+            i++;
+            continue;
+        }
+        if (isdigit(input[i]) || input[i] == '.'){
+            int j = 0;
+            while (isdigit(input[i]) || input[i] == '.'){ //como verifico que haya un solo punto en el numero?
+                elemento[j++] = input[i++];
+            }
+            //para hacerlo con mem dinamica habria que hacer dos whiles?? (medio (muy) ineficiente)
+            //digo tipo contar los digitos y dsps hacer malloc...
+            elemento[j] = '\0';
+            cola_encolar(cola,elemento);
+        }
+        else if (isalpha(input[i])){
+            int j = 0;
+            while (isalpha(input[i])){
+                elemento[j++] = input[i++];
+            }
+            elemento[j] = '\0';
+            cola_encolar(cola,elemento);
+        }
+        else if (strchr("+-*/()^", input[i])){
+            //encontre esa funcion así no hacemos mil OR's para cada simbolito válido
+            elemento[0] = input[i++];
+            elemento[1] = '\0';
+            cola_encolar(cola, elemento);
+        }
+        else{
+            i++; 
+        }
+
+    }
+
+}
+
+
 
 
 cola_t *pasar_a_postfija(cola_t *infija); //
