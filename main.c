@@ -107,7 +107,34 @@ cola_t *lee_una_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"12
 
             continue;
         }
-        else if (strchr("+-*/()^", c) != NULL && c != '\0'){ // esta funcion que encontraste devuelve un puntero a la primera ocurrencia de c en la linea esa, por eso dintinto de null tambien hay que chequear que sea distinto del '\0' era el comentario mas largo de la historia
+        else if (c == ')' || c == '('){
+            char *operador = malloc(sizeof(char) * 2); 
+            if(operador == NULL){
+                cola_destruir(cola, NULL);
+                return NULL;
+            }
+            operador[0] = c;
+            operador[1] = '\0';
+            c =getchar();
+
+            elemento_t *elemento = malloc(sizeof(elemento_t));
+            if (elemento == NULL){
+                free(operador);
+                cola_destruir(cola, NULL);
+                return NULL;
+            }
+            elemento->elemento = operador;
+            elemento->tipo = PARENTESIS;
+            if (!cola_encolar(cola, elemento)){
+                free(elemento->elemento); 
+                free(elemento);
+                cola_destruir(cola, NULL);
+                return NULL;
+            }
+
+            continue;
+        }
+        else if (strchr("+-*/^", c) != NULL && c != '\0'){ // esta funcion que encontraste devuelve un puntero a la primera ocurrencia de c en la linea esa, por eso dintinto de null tambien hay que chequear que sea distinto del '\0' era el comentario mas largo de la historia
             char *operador = malloc(sizeof(char) * 2); 
             if(operador == NULL){
                 cola_destruir(cola, NULL);
@@ -152,7 +179,7 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
 
     pila_t *auxiliar = pila_crear();
     if(auxiliar == NULL){
-        cola_destruir(salida,elemento_destruir);
+        cola_destruir(salida,elemento_destruir);//cola_destruir(salida,NULL);
         return NULL;
     }
     
@@ -164,10 +191,12 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
             continue;
         }
         if(element->tipo == FUNCION || (element->tipo == PARENTESIS && element->elemento == "(")){
+            //por qué incluis si el tipo es funcion?? eso no iria con la parte de operadores?
             pila_apilar(auxiliar, element);
             continue;
         }
-        if (element->tipo == OPERADOR){// creo que aca hace falta ver el caso en el cual la pila este vacia (creo)
+        if (element->tipo == OPERADOR){// creo que aca hace falta ver el caso en el cual la pila este vacia (creo) 
+            //sería if (tope == NULL) ... (libero y return NULL) (dsps de pila_ver_tope)
             elemento_t *tope = pila_ver_tope(auxiliar);
             if(buscar(operadores, 0, oplen -1,tope->elemento) >= buscar(operadores, 0, oplen -1,element->elemento)){ 
                 while((tope = pila_desapilar(auxiliar))!= NULL){
@@ -181,17 +210,21 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
             continue;
         }
         if(element->tipo == PARENTESIS && element->elemento == ")"){ // LOS PARENTESIS QUE TIPO SON? agrego un tipo, fue
+            //creo q es bastante lo mismo si ponias element->tipo == OPERADOR
+            //porque dsps comparas para ver cual es (")"). 
+            //IGUAL creo que nos va a servir tener un tipo de elemento parentesis (probablemente no xd)
             elemento_t *tope = pila_desapilar(auxiliar);
             if (tope == NULL){
                 printf("escribiste mal flaco");// no se
                 // capaz hay que liberar memoria aca, ni idea
+                //SÍ
                 return NULL;
             }
             while(tope->elemento != "("){
                 cola_encolar(salida ,tope);
                 elemento_t *tope = pila_desapilar(auxiliar);
             }
-            parentesis_abierto = true;
+            parentesis_abierto = true;//para qué sirve este booleano...
         
             continue;    
         }
