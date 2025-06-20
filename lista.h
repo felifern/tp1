@@ -9,7 +9,6 @@ typedef struct lista_iter lista_iter_t;
 
 /*
  * Primitivas de lista simplemente enlazada
-
  */
 
 // Crea una lista

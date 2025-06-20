@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "entero.h"
 #include "pila.h"
 #include "racional.h"
@@ -7,16 +8,15 @@
 #include "operador.h"
 #include "elemento.h"
 
+
+
+
+
 cola_t *lee_una_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123","+","fact","(","5","*","3",")"}
 
     cola_t *cola = cola_crear();
     if (cola == NULL) return NULL;
     int c;
-    //char elemento[100]; //obviamente esta mal, habria que usar mem dinamica pero hay que ver como hacer eso
-    //oooo podríamos hacer en la funcion que lea la linea, que me devuelva el numero de caracteres
-    //de esa linea yyy entonces hacemos un malloc para el elemento con esa cantidad.
-    //sería para asegurarnos que entre cada uno pero nada, tmp es muy eficiente (pedimos muucha memoria de mas en la mayoria de casos)
-    //por ej "123*(545-234)" leo y devuelvo n=13 entonces hago q el tamaño max del elemento es 13.
     c = getchar();
     while(c != EOF && c != '\n') {
         
@@ -107,7 +107,7 @@ cola_t *lee_una_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"12
 
             continue;
         }
-        else if (strchr("+-*/()^", c)){
+        else if (strchr("+-*/()^", c) != NULL && c != '\0'){ // esta funcion que encontraste devuelve un puntero a la primera ocurrencia de c en la linea esa, por eso dintinto de null tambien hay que chequear que sea distinto del '\0' era el comentario mas largo de la historia
             char *operador = malloc(sizeof(char) * 2); 
             if(operador == NULL){
                 cola_destruir(cola, NULL);
@@ -140,11 +140,73 @@ cola_t *lee_una_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"12
     }
     return cola;
 }
+//suponer que esto esta bien, hay que probarlo igual
 
 
 
+cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){// recibo una cola con los elementos_t
+    bool parentesis_abierto = false;
 
-cola_t *pasar_a_postfija(cola_t *infija); //
+    cola_t *salida = cola_crear();
+    if(salida == NULL) return NULL;
+
+    pila_t *auxiliar = pila_crear();
+    if(auxiliar == NULL){
+        cola_destruir(salida,elemento_destruir);
+        return NULL;
+    }
+    
+    elemento_t *element;
+
+    while ((element = cola_desencolar(infija)) != NULL){
+        if(element->tipo == NUMERO){
+            cola_encolar(salida, element);
+            continue;
+        }
+        if(element->tipo == FUNCION || (element->tipo == PARENTESIS && element->elemento == "(")){
+            pila_apilar(auxiliar, element);
+            continue;
+        }
+        if (element->tipo == OPERADOR){// creo que aca hace falta ver el caso en el cual la pila este vacia (creo)
+            elemento_t *tope = pila_ver_tope(auxiliar);
+            if(buscar(operadores, 0, oplen -1,tope->elemento) >= buscar(operadores, 0, oplen -1,element->elemento)){ 
+                while((tope = pila_desapilar(auxiliar))!= NULL){
+                    cola_encolar(salida ,tope);
+                }
+                pila_apilar(auxiliar, element);
+            }
+            else{
+                pila_apilar(auxiliar, element);
+            }
+            continue;
+        }
+        if(element->tipo == PARENTESIS && element->elemento == ")"){ // LOS PARENTESIS QUE TIPO SON? agrego un tipo, fue
+            elemento_t *tope = pila_desapilar(auxiliar);
+            if (tope == NULL){
+                printf("escribiste mal flaco");// no se
+                // capaz hay que liberar memoria aca, ni idea
+                return NULL;
+            }
+            while(tope->elemento != "("){
+                cola_encolar(salida ,tope);
+                elemento_t *tope = pila_desapilar(auxiliar);
+            }
+            parentesis_abierto = true;
+        
+            continue;    
+        }
+    }
+
+    elemento_t *tope = pila_ver_tope(auxiliar);
+    while((tope = pila_desapilar(auxiliar))!= NULL){
+        cola_encolar(salida ,tope);
+    }
+    //aca capaz hay que destruir un par de cosillas
+    // no lo se la verdad.
+    
+    return salida;
+
+}
 
 racional_t *operar_postfija(cola_t *polaca){
     //la idea seria tipo plantear una cola con elementos_t los defino el el .h
@@ -157,8 +219,28 @@ void suma_wrpr (void **a){
 }
 
 
+operador_t *operadores(size_t *n);// llena lista de los operadores (es para que quede mas prolijo)
+
+int buscar(const operador_t *lista[], size_t izq, size_t der, char * x) { // esta la saque de una diapo, habria que ver si la modifique como corresponde
+	if (izq > der) {
+		return -1;
+	}
+    size_t medio = (izq + der) / 2;
+    if (strcmp(lista[medio]->operador,x) < 0) {
+        return lista[medio]->prioridad;
+    }
+    if (strcmp(lista[medio]->operador,x)<0) {
+        return buscar(lista, izq, medio - 1, x);
+    } else {
+        return buscar(lista, medio + 1, der, x);
+    }
+}
+
 
 int main(){    
+    size_t oplen;
+    operador_t *op = operadores(&oplen);
+
     // en el intento del ejemplo me di cuenta que faltan definir una banda de cosas (a lo ultimo digo algo al respecto)
     // lo del elemento.h esta bien, operador.h me genera dudas,
     // pero supongo que de alguna forma hay que hacer lo que nos piden
