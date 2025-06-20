@@ -5,14 +5,14 @@
 #include "cola.h"
 #include "lista.h"
 #include "operador.h"
+#include "elemento.h"
 
-//hay que hacer una funcion que me lea la linea de stdin y me devuelva un char* con esa linea (con fgets supongo?)
-cola_t *lee_una_linea(){ //recibe linea "123+fact(5*3)" y guarda en una cola {"123","+","fact","(","5","*","3",")"}
+cola_t *lee_una_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123","+","fact","(","5","*","3",")"}
 
     cola_t *cola = cola_crear();
     if (cola == NULL) return NULL;
     int c;
-    char elemento[100]; //obviamente esta mal, habria que usar mem dinamica pero hay que ver como hacer eso
+    //char elemento[100]; //obviamente esta mal, habria que usar mem dinamica pero hay que ver como hacer eso
     //oooo podríamos hacer en la funcion que lea la linea, que me devuelva el numero de caracteres
     //de esa linea yyy entonces hacemos un malloc para el elemento con esa cantidad.
     //sería para asegurarnos que entre cada uno pero nada, tmp es muy eficiente (pedimos muucha memoria de mas en la mayoria de casos)
@@ -26,29 +26,113 @@ cola_t *lee_una_linea(){ //recibe linea "123+fact(5*3)" y guarda en una cola {"1
         }
         if (isdigit(c) || c == '.'){
             int j = 1;
-            elemento[0]= c;
-            while (isdigit(c = getchar()) || c == '.'){ //como verifico que haya un solo punto en el numero?
-                elemento[j++] = c;
+            char *num = malloc(sizeof(char) * 2);
+            if(num == NULL){
+                cola_destruir(cola, NULL);
+                return NULL;
             }
-            //para hacerlo con mem dinamica habria que hacer dos whiles?? (medio (muy) ineficiente)
-            //digo tipo contar los digitos y dsps hacer malloc...
-            elemento[j] = '\0';
-            cola_encolar(cola,elemento);
+            num[0] = c;
+            size_t n_puntos = 0;
+            if (c == '.') n_puntos++;
+            c = getchar();
+
+            while ((isdigit(c) || c == '.') && n_puntos < 2){
+                if (c == '.') n_puntos++;
+                char *aux = realloc(num, sizeof(char) * (j + 2));
+                if (aux == NULL){
+                    free(num);
+                    cola_destruir(cola,NULL);
+                    return NULL;
+                }
+                num = aux;
+                num[j++] = c;
+                c = getchar();
+            }
+            num[j] = '\0';
+
+            elemento_t *elemento = malloc(sizeof(elemento_t));
+            if (elemento == NULL){
+                free(num);
+                cola_destruir(cola, NULL);
+                return NULL;
+            }
+            elemento->elemento = num;
+            elemento->tipo = NUMERO;
+
+            if (!cola_encolar(cola,elemento)){
+                free(elemento->elemento);
+                free (elemento);
+                cola_destruir(cola,NULL);
+                return NULL;
+            }
+
+            continue;
         }
         else if (isalpha(c)){
             int j = 1;
-            elemento[0]= c;
-            while (isalpha(c = getchar())){
-                elemento[j++] = c;
+            char *fun = malloc(sizeof(char) * 2); 
+            if(fun == NULL){
+                cola_destruir(cola, NULL);
+                return NULL;
             }
-            elemento[j] = '\0';
-            cola_encolar(cola,elemento);
+            fun[0] = c;
+            c = getchar();
+            while (isalpha(c)){
+                char *aux = realloc(fun, sizeof(char) * (j + 2));
+                if(aux == NULL) {
+                    free(fun);
+                    cola_destruir(cola, NULL);
+                    return NULL;
+                } 
+                fun = aux;
+                fun[j++] = c;
+                c = getchar();
+            }
+            fun[j] = '\0';
+
+            elemento_t *elemento = malloc(sizeof(elemento_t));
+            if (elemento == NULL){
+                free(fun);
+                cola_destruir(cola, NULL);
+                return NULL;
+            }
+            elemento->elemento = fun;
+            elemento->tipo = FUNCION;
+            if (!cola_encolar(cola, elemento)){
+                free(elemento->elemento); 
+                free(elemento);
+                cola_destruir(cola, NULL);
+                return NULL;
+            }
+
+            continue;
         }
         else if (strchr("+-*/()^", c)){
-            //encontre esa funcion así no hacemos mil OR's para cada simbolito válido
-            elemento[0] = c;
-            elemento[1] = '\0';
-            cola_encolar(cola, elemento);
+            char *operador = malloc(sizeof(char) * 2); 
+            if(operador == NULL){
+                cola_destruir(cola, NULL);
+                return NULL;
+            }
+            operador[0] = c;
+            operador[1] = '\0';
+            c =getchar();
+
+            elemento_t *elemento = malloc(sizeof(elemento_t));
+            if (elemento == NULL){
+                free(operador);
+                cola_destruir(cola, NULL);
+                return NULL;
+            }
+            elemento->elemento = operador;
+            elemento->tipo = OPERADOR;
+            if (!cola_encolar(cola, elemento)){
+                free(elemento->elemento); 
+                free(elemento);
+                cola_destruir(cola, NULL);
+                return NULL;
+            }
+
+            continue;
         }
         else{
             c = getchar();
