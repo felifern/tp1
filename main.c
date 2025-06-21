@@ -134,7 +134,7 @@ cola_t *lee_una_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"12
 
             continue;
         }
-        else if (strchr("+-*/^", c) != NULL && c != '\0'){ // esta funcion que encontraste devuelve un puntero a la primera ocurrencia de c en la linea esa, por eso dintinto de null tambien hay que chequear que sea distinto del '\0' era el comentario mas largo de la historia
+        else if (strchr("+-*/^_", c) != NULL && c != '\0'){ // esta funcion que encontraste devuelve un puntero a la primera ocurrencia de c en la linea esa, por eso dintinto de null tambien hay que chequear que sea distinto del '\0' era el comentario mas largo de la historia
             char *operador = malloc(sizeof(char) * 2); 
             if(operador == NULL){
                 cola_destruir(cola, NULL);
@@ -191,7 +191,6 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
             continue;
         }
         if(element->tipo == FUNCION || (element->tipo == PARENTESIS && element->elemento == "(")){
-            //por qué incluis si el tipo es funcion?? eso no iria con la parte de operadores?
             pila_apilar(auxiliar, element);
             continue;
         }
@@ -210,9 +209,6 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
             continue;
         }
         if(element->tipo == PARENTESIS && element->elemento == ")"){ // LOS PARENTESIS QUE TIPO SON? agrego un tipo, fue
-            //creo q es bastante lo mismo si ponias element->tipo == OPERADOR
-            //porque dsps comparas para ver cual es (")"). 
-            //IGUAL creo que nos va a servir tener un tipo de elemento parentesis (probablemente no xd)
             elemento_t *tope = pila_desapilar(auxiliar);
             if (tope == NULL){
                 printf("escribiste mal flaco");// no se
@@ -225,7 +221,7 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
                 elemento_t *tope = pila_desapilar(auxiliar);
             }
             parentesis_abierto = true;//para qué sirve este booleano...
-        
+            //falta lo de: Si en el tope de la pila hay una función: Se pasa de la pila a la cola.
             continue;    
         }
     }
@@ -241,17 +237,129 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
 
 }
 
-racional_t *operar_postfija(cola_t *polaca){
+racional_t *operar_postfija(cola_t *polaca){ //llegamos aca con la notacion bien escrita (cualquier error se detecta cuando paso de infija a postfija)
     //la idea seria tipo plantear una cola con elementos_t los defino el el .h
     //si la cadena es isdigit, entonces es numero, si es is alpha entonces es funcion, 
     //si es una palabra que sea una funcion entonces es funcion.
+    pila_t *pila = pila_crear(); //va a ser una pila con racionales_t
+    if (pila == NULL){
+        //libero la mem de polaca? (xq si el algoritmo funciona bien, terminas liberandola toda)
+        cola_destruir(polaca,elemento_destruir);
+        return NULL;
+    }
+    while (!cola_esta_vacia(polaca)){
+        elemento_t *simbolo = cola_desencolar(polaca);
+
+        if (simbolo->tipo == NUMERO){
+
+            racional_t *numero;//falta implementar una funcion q pase de cadena a racional_t (o ver como hacerlo con las funciones q ya tenemos)
+            if (!pila_apilar(pila, numero)){
+                pila_destruir(pila, racional_destruir);
+                cola_destruir(polaca,elemento_destruir);
+            }
+        }
+        else if (simbolo->tipo == OPERADOR){
+            //busco en la tabla de aridad 2, si no esta busco en la de 1, si no esta, escribió cualquier cosa
+            op_binaria_t funcion_dos = buscar_operador_dos(simbolo->elemento);
+            if (funcion_dos != NULL){
+                racional_t *a = pila_desapilar(pila);
+                if (a == NULL){
+                    pila_destruir(pila, racional_destruir);
+                    cola_destruir(polaca,elemento_destruir);
+                    return NULL;
+                }
+                racional_t *b = pila_desapilar(pila);
+                if (b == NULL){
+                    pila_destruir(pila, racional_destruir);
+                    cola_destruir(polaca,elemento_destruir);
+                    racional_destruir(a);
+                    return NULL;
+                }
+                //el primero q sale es el segundo parametro
+                racional_t *resultado = funcion_dos(b,a);
+                racional_destruir(a);
+                racional_destruir(b);
+                if (resultado == NULL){
+                    cola_destruir(polaca,elemento_destruir);
+                    pila_destruir(pila,racional_destruir);
+                    return NULL;
+                }
+                pila_apilar(pila,resultado);
+            }
+            op_unaria_t funcion_uno = buscar_operador_uno(simbolo->elemento);
+            if (funcion_uno != NULL){ 
+                racional_t *num = pila_desapilar(pila);
+                if (num == NULL){
+                    pila_destruir(pila, racional_destruir);
+                    cola_destruir(polaca,elemento_destruir);
+                    return NULL;
+                }
+                racional_t *resultado = funcion_uno(num);
+                racional_destruir(num);
+                if (resultado == NULL){
+                    pila_destruir(pila, racional_destruir);
+                    cola_destruir(polaca,elemento_destruir);
+                    return NULL;
+                }
+                pila_apilar(pila,resultado);
+            }
+            pila_destruir(pila,racional_destruir);
+            cola_destruir(polaca,elemento_destruir);
+        }
+        else if (simbolo->tipo == FUNCION){
+            //busco en la tabla de aridad 1, si no esta busco en la de 0, si no esta, escribió cualquier cosa
+            op_unaria_t funcion_uno = buscar_operador_uno(simbolo->elemento);
+            if (funcion_uno != NULL){ 
+                racional_t *num = pila_desapilar(pila);
+                if (num == NULL){
+                    pila_destruir(pila, racional_destruir);
+                    cola_destruir(polaca,elemento_destruir);
+                    return NULL;
+                }
+                racional_t *resultado = funcion_uno(num);
+                racional_destruir(num);
+                if (resultado == NULL){
+                    pila_destruir(pila, racional_destruir);
+                    cola_destruir(polaca,elemento_destruir);
+                    return NULL;
+                }
+                pila_apilar(pila,resultado);
+            }
+            op_cero_t funcion_cero = buscar_operador_cero(simbolo->elemento);
+            if (funcion_cero != NULL){ 
+                racional_t *resultado = funcion_cero();
+                if (resultado == NULL){
+                    pila_destruir(pila, racional_destruir);
+                    cola_destruir(polaca,elemento_destruir);
+                    return NULL;
+                }
+                pila_apilar(pila,resultado);
+            }
+            //si no entro en ningun if, no existe la funcion
+            pila_destruir(pila,racional_destruir);
+            cola_destruir(polaca,elemento_destruir);
+            return NULL;
+        }
+    }
+    //deberia quedar un solo elemento pero chequeamos por si las moscas ahre
+    racional_t * resultado_final = pila_desapilar(pila);
+    if (resultado_final == NULL || !pila_esta_vacia(pila)){
+        pila_destruir(pila, racional_destruir);
+        racional_destruir(resultado_final);
+        //esta parte creo q esta mal xq si resultado_final == NULL y lo libero es un error
+        cola_destruir(polaca,elemento_destruir);  
+        return NULL;     
+    }
+    pila_destruir(pila,racional_destruir);
+    return resultado_final;
+    
 }
-void suma_wrpr (void **a){
+/*void suma_wrpr (void **a){
     racional_t *resultado = racional_sumar((const racional_t *)a[0], (const racional_t *)a[1]);
     a[0] = resultado;
-}
+}*/
 
-
+//ignoremos esto ahre (las nuevas estan en operador.c)
 operador_t *operadores(size_t *n);// llena lista de los operadores (es para que quede mas prolijo)
 
 int buscar(const operador_t *lista[], size_t izq, size_t der, char * x) { // esta la saque de una diapo, habria que ver si la modifique como corresponde

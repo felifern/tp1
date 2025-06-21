@@ -8,8 +8,35 @@ typedef struct{
     racional_t *(*funcion) (racional_t **a);//podemos hacero esto.
     int aridad;
     int prioridad;
-    char *descripcion;
+    //char *descripcion;
 }operador_t;
+
+//nueva idea : 3 tablas (aridad 0,1,2)
+typedef racional_t *(*op_binaria_t)(racional_t *, racional_t *);
+typedef racional_t *(*op_unaria_t)(racional_t *);
+typedef racional_t *(*op_cero_t)(void);
+
+struct operador_dos {
+    const char *nombre;
+    op_binaria_t funcion;
+    int prioridad;
+};
+
+struct operador_uno {
+    const char *nombre;
+    op_unaria_t funcion;
+    int prioridad;
+};
+
+struct operador_cero{
+    const char *nombre;
+    op_cero_t funcion;
+    int prioridad;
+};
+
+op_binaria_t buscar_operador_dos(const char *nombre);
+op_unaria_t buscar_operador_uno(const char *nombre);
+op_cero_t buscar_operador_cero(const char *nombre);
 
 
 

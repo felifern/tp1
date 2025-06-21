@@ -391,6 +391,12 @@ racional_t *racional_inverso(racional_t *q){
     return q_inv;
 }
 
+racional_t *racional_inverso_multiplicativo(racional_t *q){
+    racional_t *q_inv = racional_crear(q->s,q->d,q->n);
+    if (q_inv == NULL) return NULL;
+    return q_inv;
+}
+
 racional_t *racional_pi (){
     char *n = {1,3,1,4,1,6};
     char *d = {1,0,0,0,0,0};

@@ -31,6 +31,7 @@ racional_t *racional_dividir(const racional_t *q, const racional_t *r);
 racional_t *racional_factorial(racional_t *n);
 racional_t *racional_abs(racional_t *q);
 racional_t *racional_inverso(racional_t *q);
+racional_t *racional_inverso_multiplicativo(racional_t *q);
 racional_t *racional_pi ();
 racional_t *racional_e ();
 racional_t *racional_phi ();
