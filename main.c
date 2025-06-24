@@ -21,7 +21,14 @@ typedef struct {
 
 void elemento_destruir(elemento_t*elemento);
 
-
+int buscar(operador_t **lista, size_t listlen , char * x) { // esta la saque de una diapo, habria que ver si la modifique como corresponde
+	for (size_t i = 0; i<listlen; i++){
+        if(strcmp(lista[i]->operador, x) == 0){
+            return lista[i]->aridad;
+        }
+    }
+    return -1;
+}
 
 cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123","+","fact","(","5","*","3",")"}
 
@@ -181,19 +188,19 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
 //suponer que esto esta bien, hay que probarlo igual
 
 
-/*
+// esta funcion esta como el orto, despues la leo con mas calma. <------------------- YO ME OCUPO
 cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){// recibo una cola con los elementos_t
-    bool parentesis_abierto = false;
+    //bool parentesis_abierto = false;
 
     cola_t *salida = cola_crear();
     if(salida == NULL) return NULL;
 
     pila_t *auxiliar = pila_crear();
     if(auxiliar == NULL){
-        cola_destruir(salida,elemento_destruir);//cola_destruir(salida,NULL);
+        //cola_destruir(salida,elemento_destruir);//cola_destruir(salida,NULL);
         return NULL;
     }
-    
+    elemento_t *tope;
     elemento_t *element;
 
     while ((element = cola_desencolar(infija)) != NULL){
@@ -201,44 +208,58 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
             cola_encolar(salida, element);
             continue;
         }
-        if(element->tipo == FUNCION || (element->tipo == PARENTESIS && element->elemento == "(")){
+        if(element->tipo == FUNCION || (element->tipo == PARENTESIS && strcmp(element->elemento, "(") == 0)){
             pila_apilar(auxiliar, element);
+            printf("\napilo esto :%s\n", element->elemento);
             continue;
         }
         if (element->tipo == OPERADOR){// creo que aca hace falta ver el caso en el cual la pila este vacia (creo) 
             //sería if (tope == NULL) ... (libero y return NULL) (dsps de pila_ver_tope)
-            elemento_t *tope = pila_ver_tope(auxiliar);
-            if(buscar(operadores, 0, oplen -1,tope->elemento) >= buscar(operadores, 0, oplen -1,element->elemento)){ 
-                while((tope = pila_desapilar(auxiliar))!= NULL){
-                    cola_encolar(salida ,tope);
-                }
+            // esto, hay que verlo
+            tope = pila_ver_tope(auxiliar);
+            if (tope == NULL || strcmp(tope->elemento, "(") == 0){
                 pila_apilar(auxiliar, element);
+                continue;
             }
-            else{
-                pila_apilar(auxiliar, element);
+            tope = pila_desapilar(auxiliar);
+            while(buscar(operadores,oplen,tope->elemento) >= buscar(operadores,oplen ,element->elemento)||strcmp(tope->elemento, "(") != 0||(tope = pila_desapilar(auxiliar))!= NULL){
+                cola_encolar(salida ,tope);
+                tope = pila_desapilar(auxiliar);
             }
+            pila_apilar(auxiliar, element);
             continue;
         }
-        if(element->tipo == PARENTESIS && element->elemento == ")"){ // LOS PARENTESIS QUE TIPO SON? agrego un tipo, fue
-            elemento_t *tope = pila_desapilar(auxiliar);
-            if (tope == NULL){
-                printf("escribiste mal flaco");// no se
-                // capaz hay que liberar memoria aca, ni idea
-                //SÍ
-                return NULL;
+        if(element->tipo == PARENTESIS && strcmp(element->elemento, ")") == 0){ // LOS PARENTESIS QUE TIPO SON? agrego un tipo, fue
+            tope = pila_desapilar(auxiliar);
+            if(tope == NULL){
+                printf("escribiste mal flaco lo primero");
+                continue;
             }
-            while(tope->elemento != "("){
+            while(tope != NULL && strcmp(tope->elemento, "(") != 0){
                 cola_encolar(salida ,tope);
-                elemento_t *tope = pila_desapilar(auxiliar);
+                printf("entra");
+                printf("%s anterior a que falle", tope->elemento);
+                tope = pila_desapilar(auxiliar);
             }
-            parentesis_abierto = true;//para qué sirve este booleano...
+            if(tope == NULL){
+                printf("escribiste mal flaco");
+                continue;
+            }
+            else{//si entra aca es (
+                tope = pila_desapilar(auxiliar);
+            }
+            //parentesis_abierto = true;//para qué sirve este booleano...
             //falta lo de: Si en el tope de la pila hay una función: Se pasa de la pila a la cola.
+            // rta: no se que estas hablando
             continue;    
         }
     }
 
-    elemento_t *tope = pila_ver_tope(auxiliar);
+    tope = pila_ver_tope(auxiliar);
     while((tope = pila_desapilar(auxiliar))!= NULL){
+        if(strcmp(tope->elemento,"(")){
+            continue;
+        }
         cola_encolar(salida ,tope);
     }
     //aca capaz hay que destruir un par de cosillas
@@ -248,6 +269,7 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
 
 }
 
+/*
 racional_t *operar_postfija(cola_t *polaca){ //llegamos aca con la notacion bien escrita (cualquier error se detecta cuando paso de infija a postfija)
     //la idea seria tipo plantear una cola con elementos_t los defino el el .h
     //si la cadena es isdigit, entonces es numero, si es is alpha entonces es funcion, 
@@ -365,33 +387,53 @@ racional_t *operar_postfija(cola_t *polaca){ //llegamos aca con la notacion bien
     return resultado_final;
     
 }
-
 */
 
-/*
-void suma_wrpr (void **a){
-    racional_t *resultado = racional_sumar((const racional_t *)a[0], (const racional_t *)a[1]);
-    a[0] = resultado;
-}
-*/
 operador_t *operadores(size_t *n);// llena lista de los operadores (es para que quede mas prolijo)
 
-int buscar(const operador_t *lista[], size_t izq, size_t der, char * x) { // esta la saque de una diapo, habria que ver si la modifique como corresponde
-	if (izq > der) {
-		return -1;
-	}
-    size_t medio = (izq + der) / 2;
-    if (strcmp(lista[medio]->operador,x) < 0) {
-        return lista[medio]->prioridad;
+
+
+operador_t *operador_crear(char *operador, racional_t *(*funcion) (const racional_t *a, const racional_t *b), int aridad,
+int prioridad, char *descripcion){
+    operador_t *nuevo = malloc(sizeof(operador_t));
+    if (nuevo == NULL){
+        return NULL;
     }
-    if (strcmp(lista[medio]->operador,x)<0) {
-        return buscar(lista, izq, medio - 1, x);
-    } else {
-        return buscar(lista, medio + 1, der, x);
+    char *nombre = malloc(strlen(operador) + 1);
+    if(nombre == NULL){
+        free(nuevo);
+        return NULL;
     }
+    memcpy(nombre, operador, strlen(operador) + 1);
+    char *desc = malloc(strlen(descripcion) + 1);
+    if(desc == NULL){
+        free(nombre);
+        free(nuevo);
+        return NULL;
+    }
+    memcpy(desc, descripcion, strlen(descripcion) + 1);
+    nuevo->operador = nombre;
+    nuevo->funcion = funcion;
+    nuevo->aridad = aridad;
+    nuevo->prioridad = prioridad;
+    nuevo->descripcion = descripcion;
+
+    return nuevo;
 }
 
-
+operador_t **tabla_crear(size_t *n){
+    operador_t **tabla = malloc(20 * sizeof(operador_t*));
+    if(tabla == NULL){
+        return NULL;
+    }
+    tabla[0] = operador_crear("suma", racional_sumar, 2, 1, "es una suma");
+    tabla[1] = operador_crear("resta", racional_restar, 2, 1, "es una resta");
+    tabla[2] = operador_crear("producto", racional_multiplicar, 2, 2, "es un producto");
+    tabla[3] = operador_crear("division", racional_dividir, 2, 3, "es una division");
+    //tabla[4] = operador_crear("potencia", racional_elevar, 2, 2, "es una potencia"); //pero hay que hacerla jj
+    *n = 4;
+    return tabla;
+}
 
 
 
@@ -412,14 +454,18 @@ int main(){
     suma.funcion(a, b);
     racional_imprimir(elementos[0]);
     */
-
-
+    size_t tablen;
+    operador_t **tabla = tabla_crear(&tablen);
+    
     cola_t *prueba;
-
+    cola_t *prueba2;
+    
     prueba = leer_linea();
     elemento_t *leo;
 
-    while((leo = cola_desencolar(prueba)) != NULL){
+    prueba2 = pasar_a_postfija(prueba, tabla, tablen);
+    
+    while((leo = cola_desencolar(prueba2)) != NULL){
         printf("%s", leo->elemento);
         printf("\n");
     }

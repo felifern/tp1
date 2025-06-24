@@ -1,4 +1,4 @@
-CFLAGS=-std=c99 -pedantic -Wall -Werror -c
+CFLAGS=-std=c99 -pedantic -Wall -Werror -c -g
 LFLAGS=-lm
 
 all:programa

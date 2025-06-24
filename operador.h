@@ -8,7 +8,7 @@
 
 typedef struct{
     char *operador;
-    racional_t *(*funcion) (racional_t *a, racional_t *b);//podemos hacero esto.
+    racional_t *(*funcion) (const racional_t *a, const racional_t *b);//podemos hacero esto.
     int aridad;
     int prioridad;
     char *descripcion;

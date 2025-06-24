@@ -2,6 +2,13 @@
 #include "racional.h"
 #include <string.h>
 
+
+
+
+
+
+
+
 /*
 
 typedef struct operador_dos operador_dos_t;
