@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include "entero.h"
 #include <stdlib.h>
-
+#include <string.h>
 
 struct racional {
     // Representa una fracción mixta de la forma (-1)^s * (n / d).
@@ -362,7 +362,7 @@ racional_t *racional_dividir(const racional_t *q, const racional_t *r){
 }
 
 racional_t *racional_factorial(racional_t *q){
-    if (q->d != 1 || q->s == 1) return NULL;
+    if (entero_comparar(q->d, entero_uno()) != 0 || q->s == true) return NULL;// esto va a terner una leak, porque cada vez que comparo hago un num(estoy probando)
     entero_t *nuevo_n = entero_clonar(q->n);
     if (nuevo_n == NULL) return NULL;
 
@@ -396,7 +396,7 @@ racional_t *racional_inverso_multiplicativo(racional_t *q){
     if (q_inv == NULL) return NULL;
     return q_inv;
 }
-
+/*
 racional_t *racional_pi (){
     char *n = {1,3,1,4,1,6};
     char *d = {1,0,0,0,0,0};
@@ -433,4 +433,5 @@ racional_t *racional_phi (){
     }
     return racional_crear(0,n,d); 
 }
-
+*/
+// las comento porque tiran error, pero estabamos inicializando char* con ints

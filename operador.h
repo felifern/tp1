@@ -1,15 +1,20 @@
 #ifndef OPERADOR_H
 #define OPERADOR_H
-// lamentablemente llegue a la conclusion de que esto es necesario
+
+#include "racional.h"
+#include <string.h>
+#include <stdio.h>
+
 
 typedef struct{
     char *operador;
-    //void (*funcion)(void **argumentos); esto estaba asi pero si suponemos que ser reciben racional_t* y devolvemos racional_t*
-    racional_t *(*funcion) (racional_t **a);//podemos hacero esto.
+    racional_t *(*funcion) (racional_t *a, racional_t *b);//podemos hacero esto.
     int aridad;
     int prioridad;
-    //char *descripcion;
+    char *descripcion;
 }operador_t;
+
+
 
 //nueva idea : 3 tablas (aridad 0,1,2)
 typedef racional_t *(*op_binaria_t)(racional_t *, racional_t *);
@@ -41,22 +46,7 @@ op_cero_t buscar_operador_cero(const char *nombre);
 
 
 
-// mmmmmmmmmmm. la idea seria pasar argumentos con void** cada funcion particular sabe que argumentos usar.
-// dejo un ejemplo en el main.c 
-
-
-//comentario anterior:
-//Si agrego void *funcion deberia hacerse algun wrapper para poder englobar todo. (creo)
-/*
-el tema del wrapper es para ver como pasar del void * al puntero a la funcion que necesitamos usar.
-pero no debe haber muchos tipos de funciones para definir. (en realidad no se, imagino que debe haber a los sumo 4 o 6)
-*/
-
-// entonces en la pila apilamos elemntos_t y si son operadores o funciones podemos buscarlos en al lista que nos
-// obligan a hacer. 
-
-// capaz hacer el elemento.h es innecesario, se puede definir todas esas estructuras aca. 
-// queda mas desprolijo supongo, pero es mas rapido(?.
-
+// bueno, se usa lo primero, no borro esto porque capaz sirve de inspiracion para alguna otra cosa.
+// y hasta arreglar las funciones que lo usaban marca errores.
 
 #endif

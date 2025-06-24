@@ -572,7 +572,7 @@ bool entero_factorial(entero_t *n){
     }
 }// hay que implementar. (feli) HAY QUE HACER LAS VERIFICACIONES PERTINENTES cualquiera.
 
-
+/*
 entero_t *entero_factorial2(entero_t *n){
     entero_t *cero = entero_cero();
     entero_t *uno = entero_uno();
@@ -587,3 +587,4 @@ entero_t *entero_factorial2(entero_t *n){
         return n;
     }
 }// hay que implementar. (feli) HAY QUE HACER LAS VERIFICACIONES PERTINENTES cualquiera.
+*/

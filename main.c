@@ -6,13 +6,24 @@
 #include "cola.h"
 #include "lista.h"
 #include "operador.h"
-#include "elemento.h"
+#include <stdlib.h>
+#include <ctype.h>
+
+//#include "elemento.h"
+
+enum tipo {OPERADOR, NUMERO, FUNCION, PARENTESIS};
+typedef enum tipo tipo;
+
+typedef struct {
+    char *elemento;
+    tipo tipo;
+}elemento_t; 
+
+void elemento_destruir(elemento_t*elemento);
 
 
 
-
-
-cola_t *lee_una_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123","+","fact","(","5","*","3",")"}
+cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123","+","fact","(","5","*","3",")"}
 
     cola_t *cola = cola_crear();
     if (cola == NULL) return NULL;
@@ -170,7 +181,7 @@ cola_t *lee_una_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"12
 //suponer que esto esta bien, hay que probarlo igual
 
 
-
+/*
 cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){// recibo una cola con los elementos_t
     bool parentesis_abierto = false;
 
@@ -354,12 +365,15 @@ racional_t *operar_postfija(cola_t *polaca){ //llegamos aca con la notacion bien
     return resultado_final;
     
 }
-/*void suma_wrpr (void **a){
+
+*/
+
+/*
+void suma_wrpr (void **a){
     racional_t *resultado = racional_sumar((const racional_t *)a[0], (const racional_t *)a[1]);
     a[0] = resultado;
-}*/
-
-//ignoremos esto ahre (las nuevas estan en operador.c)
+}
+*/
 operador_t *operadores(size_t *n);// llena lista de los operadores (es para que quede mas prolijo)
 
 int buscar(const operador_t *lista[], size_t izq, size_t der, char * x) { // esta la saque de una diapo, habria que ver si la modifique como corresponde
@@ -378,58 +392,40 @@ int buscar(const operador_t *lista[], size_t izq, size_t der, char * x) { // est
 }
 
 
+
+
+
+
+
 int main(){    
+    /*
     size_t oplen;
     operador_t *op = operadores(&oplen);
-
-    // en el intento del ejemplo me di cuenta que faltan definir una banda de cosas (a lo ultimo digo algo al respecto)
-    // lo del elemento.h esta bien, operador.h me genera dudas,
-    // pero supongo que de alguna forma hay que hacer lo que nos piden
 
     // imaginamos que de la pila se desapilan "3", "2", "+" o como funcione el algoritmo, queremos sumar 2+3
     racional_t *a;//ponele que es el 2
     racional_t *b;// ponele que es el 3
     racional_t **elementos;// aca guardo el 2 y el 3
 
-    operador_t suma;// asi deberiamos definir las cosas ponele
+    operador_t suma;
     suma.funcion = suma_wrpr;
-    
-    // desapilando los 2 tenemos (esto tenemos que definir, sino no se puede pensar esto) supone un puntero a punteros
-    // racional_t entonces si yo paso eso a la funcion deberia funcionar y devolver por el primero el resultado
-
-    elementos[0] = a; 
-    elementos[1] = b;
-
-    suma.funcion(elementos);
-    //ahora el resultado estaria en elementos[0](es un ejemplo igual, no se si seria bueno implementar asi)
+    suma.funcion(a, b);
     racional_imprimir(elementos[0]);
-
-    // realmente esto es una mierda, pero ahora hay algo con lo que preguntar. igual hay que ver que tan lejos esta
-    // de ser una buena idea. 
-
-    // lo que dije que falta definir una "banda" de cosas es mas que nada como vamos a tratar a los elementos que
-    // vayamos apilando y manipulando. pero esto ultimo es mas que nada la logica de la funcion que opera todo esto,
-    // tipo porque llegamos con los char* dependiendo del tipo que sean hacemos distintas cosas. (si son numeros
-    // los pasamos a racional en tiempo de ejecucion y los volvemos a transformar a char*. si son operadores y
-    // los tenemos que usar los buscamos y los usamos como propuse arriba). Y escribiendo esto me da un poco la 
-    // pauta de que manejar esa memoria va a ser un quilombo y se deberian hacer muchos pases de tipos.
-
-    // otra cosa con operador.h como tenemos que saber bien la firma de cada funcion tampoco habria alguna forma de 
-    // agregar operaciones a traves de una funcion como si fuera un TDA. 
-    // esto (el ej) lo hago bajo la asuncion de que deberiamos trabajar con cualquier tipo de funcion que se le pueda
-    // ocurrir al tipo que vaya a usar el programa. 
-    // ponele que todo esto se simplifica a funciones que reciban 0, 1 o 2 (3 a lo sumo) parametros de tipo racional_t y 
-    // devuelvan racional_t ahi seria distinto, se podria hacer todo esto que estoy diciendo mucho mas facil
-    // o eso creo. ademas, porque agregaria una funcion que no opere numeros, pero bueno hay que preguntar.
+    */
 
 
-    // es medio choto esto la verdad, y no se cuanto de todo esto se entienda asi hablando por COMENTARIOS DE VSCODE,
-    // tremendo, ademas no se me cae una tilde, tampoco se poneralas con el teclado en ingles srry.
+    cola_t *prueba;
 
+    prueba = leer_linea();
+    elemento_t *leo;
 
+    while((leo = cola_desencolar(prueba)) != NULL){
+        printf("%s", leo->elemento);
+        printf("\n");
+    }
 
-
-
+    
+    
     printf("pastel de papa");
     printf("pastel de papaAAAAA");
 

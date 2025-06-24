@@ -1,5 +1,8 @@
 #include "operador.h"
 #include "racional.h"
+#include <string.h>
+
+/*
 
 typedef struct operador_dos operador_dos_t;
 typedef struct operador_uno operador_uno_t;
@@ -50,4 +53,4 @@ op_cero_t buscar_operador_cero(const char *nombre) {
             return operadores_cero[i].funcion;
     }
     return NULL;
-}
+}*/
