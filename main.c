@@ -21,10 +21,10 @@ typedef struct {
 
 void elemento_destruir(elemento_t*elemento);
 
-int buscar(operador_t **lista, size_t listlen , char * x) { // esta la saque de una diapo, habria que ver si la modifique como corresponde
+int buscar(operador_t **lista, size_t listlen , char * x) {
 	for (size_t i = 0; i<listlen; i++){
         if(strcmp(lista[i]->operador, x) == 0){
-            return lista[i]->aridad;
+            return lista[i]->prioridad;
         }
     }
     return -1;
@@ -188,7 +188,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
 //suponer que esto esta bien, hay que probarlo igual
 
 
-// esta funcion esta como el orto, despues la leo con mas calma. <------------------- YO ME OCUPO
+
 cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){// recibo una cola con los elementos_t
     //bool parentesis_abierto = false;
 
@@ -202,63 +202,53 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
     }
     elemento_t *tope;
     elemento_t *element;
-
-    while ((element = cola_desencolar(infija)) != NULL){
+    
+    while ((element = cola_desencolar(infija)) != NULL){//ok
         if(element->tipo == NUMERO){
             cola_encolar(salida, element);
             continue;
         }
-        if(element->tipo == FUNCION || (element->tipo == PARENTESIS && strcmp(element->elemento, "(") == 0)){
+        if(element->tipo == FUNCION || (element->tipo == PARENTESIS && strcmp(element->elemento, "(") == 0)){//ok
             pila_apilar(auxiliar, element);
-            printf("\napilo esto :%s\n", element->elemento);
             continue;
         }
-        if (element->tipo == OPERADOR){// creo que aca hace falta ver el caso en el cual la pila este vacia (creo) 
-            //sería if (tope == NULL) ... (libero y return NULL) (dsps de pila_ver_tope)
-            // esto, hay que verlo
+        if (element->tipo == OPERADOR){
             tope = pila_ver_tope(auxiliar);
             if (tope == NULL || strcmp(tope->elemento, "(") == 0){
                 pila_apilar(auxiliar, element);
                 continue;
             }
-            tope = pila_desapilar(auxiliar);
-            while(buscar(operadores,oplen,tope->elemento) >= buscar(operadores,oplen ,element->elemento)||strcmp(tope->elemento, "(") != 0||(tope = pila_desapilar(auxiliar))!= NULL){
-                cola_encolar(salida ,tope);
+            while((tope = pila_ver_tope(auxiliar))!= NULL && strcmp(tope->elemento, "(") != 0 && buscar(operadores, oplen, tope->elemento) >= buscar(operadores, oplen, element->elemento)){
                 tope = pila_desapilar(auxiliar);
+                cola_encolar(salida ,tope);
             }
             pila_apilar(auxiliar, element);
             continue;
         }
-        if(element->tipo == PARENTESIS && strcmp(element->elemento, ")") == 0){ // LOS PARENTESIS QUE TIPO SON? agrego un tipo, fue
+        if(element->tipo == PARENTESIS && strcmp(element->elemento, ")") == 0){ 
             tope = pila_desapilar(auxiliar);
             if(tope == NULL){
                 printf("escribiste mal flaco lo primero");
                 continue;
             }
-            while(tope != NULL && strcmp(tope->elemento, "(") != 0){
+            while(tope != NULL && strcmp(tope->elemento, "(") != 0){// aca falta algo mepa, si despues de cerrar hay una funcion tambien se encola
                 cola_encolar(salida ,tope);
-                printf("entra");
-                printf("%s anterior a que falle", tope->elemento);
                 tope = pila_desapilar(auxiliar);
             }
             if(tope == NULL){
                 printf("escribiste mal flaco");
                 continue;
             }
-            else{//si entra aca es (
-                tope = pila_desapilar(auxiliar);
-            }
-            //parentesis_abierto = true;//para qué sirve este booleano...
-            //falta lo de: Si en el tope de la pila hay una función: Se pasa de la pila a la cola.
-            // rta: no se que estas hablando
             continue;    
         }
     }
 
     tope = pila_ver_tope(auxiliar);
     while((tope = pila_desapilar(auxiliar))!= NULL){
-        if(strcmp(tope->elemento,"(")){
-            continue;
+        if(strcmp(tope->elemento,"(")== 0){
+            printf("error, no se cerro nunca este parentesis");
+            //liberar memoria
+            return NULL;
         }
         cola_encolar(salida ,tope);
     }
@@ -426,10 +416,10 @@ operador_t **tabla_crear(size_t *n){
     if(tabla == NULL){
         return NULL;
     }
-    tabla[0] = operador_crear("suma", racional_sumar, 2, 1, "es una suma");
-    tabla[1] = operador_crear("resta", racional_restar, 2, 1, "es una resta");
-    tabla[2] = operador_crear("producto", racional_multiplicar, 2, 2, "es un producto");
-    tabla[3] = operador_crear("division", racional_dividir, 2, 3, "es una division");
+    tabla[0] = operador_crear("+", racional_sumar, 2, 1, "es una suma");
+    tabla[1] = operador_crear("-", racional_restar, 2, 1, "es una resta");
+    tabla[2] = operador_crear("*", racional_multiplicar, 2, 2, "es un producto");
+    tabla[3] = operador_crear("/", racional_dividir, 2, 3, "es una division");
     //tabla[4] = operador_crear("potencia", racional_elevar, 2, 2, "es una potencia"); //pero hay que hacerla jj
     *n = 4;
     return tabla;
@@ -456,7 +446,6 @@ int main(){
     */
     size_t tablen;
     operador_t **tabla = tabla_crear(&tablen);
-    
     cola_t *prueba;
     cola_t *prueba2;
     
