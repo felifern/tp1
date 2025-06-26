@@ -21,14 +21,15 @@ typedef struct {
 
 void elemento_destruir(elemento_t*elemento);
 
-int buscar(operador_t **lista, size_t listlen , char * x) {
-	for (size_t i = 0; i<listlen; i++){
-        if(strcmp(lista[i]->operador, x) == 0){
-            return lista[i]->prioridad;
+operador_t *buscar(operador_t **operadores, size_t oplen , char * x) { // buscamos los operadores por "+", "-", ("identificadores"(?))
+	for (size_t i = 0; i<oplen; i++){
+        if(strcmp(operadores[i]->operador, x) == 0){
+            return operadores[i];
         }
     }
-    return -1;
-}
+    return NULL;
+} // si devuelve null no existe el operador
+
 
 cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123","+","fact","(","5","*","3",")"}
 
@@ -185,8 +186,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
     }
     return cola;
 }
-//suponer que esto esta bien, hay que probarlo igual
-
+//esto esta perfecto
 
 
 cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){// recibo una cola con los elementos_t
@@ -204,7 +204,7 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
     elemento_t *element;
     
     while ((element = cola_desencolar(infija)) != NULL){//ok
-        if(element->tipo == NUMERO){
+        if(element->tipo == NUMERO){//ok
             cola_encolar(salida, element);
             continue;
         }
@@ -212,15 +212,36 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
             pila_apilar(auxiliar, element);
             continue;
         }
-        if (element->tipo == OPERADOR){
+        if (element->tipo == OPERADOR){//element seguro distinto de NULL
             tope = pila_ver_tope(auxiliar);
-            if (tope == NULL || strcmp(tope->elemento, "(") == 0){
+            if (tope == NULL || strcmp(tope->elemento, "(") == 0){//tope tambien distinto de NULL
                 pila_apilar(auxiliar, element);
                 continue;
             }
-            while((tope = pila_ver_tope(auxiliar))!= NULL && strcmp(tope->elemento, "(") != 0 && buscar(operadores, oplen, tope->elemento) >= buscar(operadores, oplen, element->elemento)){
+            
+            operador_t *tope_aux = buscar(operadores, oplen, tope->elemento);
+            if(tope_aux == NULL){
+                //liberar memoria
+                //printf("el operador %s no existe", tope->elemento);
+                return NULL;
+            }
+            
+            operador_t *element_aux = buscar(operadores, oplen, element->elemento);
+            if(tope_aux == NULL){
+                //liberar memoria
+                //printf("el operador %s no existe", (element->elemento));
+                return NULL;
+            }
+            
+            while((tope = pila_ver_tope(auxiliar))!= NULL && strcmp(tope->elemento, "(") != 0 && tope_aux -> prioridad >= element_aux -> prioridad){
                 tope = pila_desapilar(auxiliar);
                 cola_encolar(salida ,tope);
+                tope_aux = buscar(operadores, oplen, tope->elemento);
+                if(tope_aux == NULL){
+                    //liberar memoria
+                    //printf("el operador %s no existe", (tope->elemento)); comente los printf de los errores porque me tiran erro (no se porque)
+                    return NULL;
+                }
             }
             pila_apilar(auxiliar, element);
             continue;
@@ -235,8 +256,13 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
                 cola_encolar(salida ,tope);
                 tope = pila_desapilar(auxiliar);
             }
-            if(tope == NULL){
+            if(tope == NULL){//o es NULL o es "("
                 printf("escribiste mal flaco");
+                // liberar memoria
+                return NULL;
+            }
+            if((tope = pila_ver_tope(auxiliar)) != NULL  && tope->tipo == FUNCION){
+                cola_encolar(salida, pila_desapilar(auxiliar));
                 continue;
             }
             continue;    
@@ -259,11 +285,9 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
 
 }
 
-/*
-racional_t *operar_postfija(cola_t *polaca){ //llegamos aca con la notacion bien escrita (cualquier error se detecta cuando paso de infija a postfija)
-    //la idea seria tipo plantear una cola con elementos_t los defino el el .h
-    //si la cadena es isdigit, entonces es numero, si es is alpha entonces es funcion, 
-    //si es una palabra que sea una funcion entonces es funcion.
+
+racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t oplen){ //llegamos aca con la notacion bien escrita (cualquier error se detecta cuando paso de infija a postfija)
+
     pila_t *pila = pila_crear(); //va a ser una pila con racionales_t
     if (pila == NULL){
         //libero la mem de polaca? (xq si el algoritmo funciona bien, terminas liberandola toda)
@@ -274,113 +298,77 @@ racional_t *operar_postfija(cola_t *polaca){ //llegamos aca con la notacion bien
         elemento_t *simbolo = cola_desencolar(polaca);
 
         if (simbolo->tipo == NUMERO){
-
             racional_t *numero;//falta implementar una funcion q pase de cadena a racional_t (o ver como hacerlo con las funciones q ya tenemos)
             if (!pila_apilar(pila, numero)){
                 pila_destruir(pila, racional_destruir);
                 cola_destruir(polaca,elemento_destruir);
+                return NULL;
             }
         }
-        else if (simbolo->tipo == OPERADOR){
-            //busco en la tabla de aridad 2, si no esta busco en la de 1, si no esta, escribió cualquier cosa
-            op_binaria_t funcion_dos = buscar_operador_dos(simbolo->elemento);
-            if (funcion_dos != NULL){
+
+        else if (simbolo->tipo == OPERADOR || simbolo->tipo == FUNCION){
+            operador_t *operador = buscar(operadores, oplen, simbolo->elemento);
+            if (operador == NULL){
+                pila_destruir(pila, racional_destruir);
+                cola_destruir(polaca, elemento_destruir);
+                return NULL;
+            }
+            int aridad = operador->aridad;
+            racional_t *(*funcion) (const racional_t *a, const racional_t *b) = operador->funcion;
+
+            racional_t *a = NULL;
+            racional_t *b = NULL;
+            
+            if (aridad == 1){
                 racional_t *a = pila_desapilar(pila);
                 if (a == NULL){
                     pila_destruir(pila, racional_destruir);
                     cola_destruir(polaca,elemento_destruir);
                     return NULL;
                 }
+            }
+            if (aridad == 2){
+                //el primero q sale es el segundo parametro
                 racional_t *b = pila_desapilar(pila);
                 if (b == NULL){
+                    pila_destruir(pila, racional_destruir);
+                    cola_destruir(polaca,elemento_destruir);
+                    return NULL;
+                }
+                racional_t *a = pila_desapilar(pila);
+                if (a == NULL){
                     pila_destruir(pila, racional_destruir);
                     cola_destruir(polaca,elemento_destruir);
                     racional_destruir(a);
                     return NULL;
                 }
-                //el primero q sale es el segundo parametro
-                racional_t *resultado = funcion_dos(b,a);
-                racional_destruir(a);
-                racional_destruir(b);
-                if (resultado == NULL){
+            }
+
+            racional_t *resultado = funcion(a,b);
+            if (a != NULL) racional_destruir(a);
+            if (b != NULL) racional_destruir(b);
+            if (resultado == NULL){
                     cola_destruir(polaca,elemento_destruir);
                     pila_destruir(pila,racional_destruir);
                     return NULL;
-                }
-                pila_apilar(pila,resultado);
             }
-            op_unaria_t funcion_uno = buscar_operador_uno(simbolo->elemento);
-            if (funcion_uno != NULL){ 
-                racional_t *num = pila_desapilar(pila);
-                if (num == NULL){
-                    pila_destruir(pila, racional_destruir);
-                    cola_destruir(polaca,elemento_destruir);
-                    return NULL;
-                }
-                racional_t *resultado = funcion_uno(num);
-                racional_destruir(num);
-                if (resultado == NULL){
-                    pila_destruir(pila, racional_destruir);
-                    cola_destruir(polaca,elemento_destruir);
-                    return NULL;
-                }
-                pila_apilar(pila,resultado);
-            }
-            pila_destruir(pila,racional_destruir);
-            cola_destruir(polaca,elemento_destruir);
-        }
-        else if (simbolo->tipo == FUNCION){
-            //busco en la tabla de aridad 1, si no esta busco en la de 0, si no esta, escribió cualquier cosa
-            op_unaria_t funcion_uno = buscar_operador_uno(simbolo->elemento);
-            if (funcion_uno != NULL){ 
-                racional_t *num = pila_desapilar(pila);
-                if (num == NULL){
-                    pila_destruir(pila, racional_destruir);
-                    cola_destruir(polaca,elemento_destruir);
-                    return NULL;
-                }
-                racional_t *resultado = funcion_uno(num);
-                racional_destruir(num);
-                if (resultado == NULL){
-                    pila_destruir(pila, racional_destruir);
-                    cola_destruir(polaca,elemento_destruir);
-                    return NULL;
-                }
-                pila_apilar(pila,resultado);
-            }
-            op_cero_t funcion_cero = buscar_operador_cero(simbolo->elemento);
-            if (funcion_cero != NULL){ 
-                racional_t *resultado = funcion_cero();
-                if (resultado == NULL){
-                    pila_destruir(pila, racional_destruir);
-                    cola_destruir(polaca,elemento_destruir);
-                    return NULL;
-                }
-                pila_apilar(pila,resultado);
-            }
-            //si no entro en ningun if, no existe la funcion
-            pila_destruir(pila,racional_destruir);
-            cola_destruir(polaca,elemento_destruir);
-            return NULL;
+            pila_apilar(pila, resultado);
         }
     }
     //deberia quedar un solo elemento pero chequeamos por si las moscas ahre
     racional_t * resultado_final = pila_desapilar(pila);
     if (resultado_final == NULL || !pila_esta_vacia(pila)){
         pila_destruir(pila, racional_destruir);
-        racional_destruir(resultado_final);
-        //esta parte creo q esta mal xq si resultado_final == NULL y lo libero es un error
+        if (resultado_final != NULL) racional_destruir(resultado_final);
         cola_destruir(polaca,elemento_destruir);  
         return NULL;     
     }
     pila_destruir(pila,racional_destruir);
     return resultado_final;
-    
-}
-*/
+}           
+
 
 operador_t *operadores(size_t *n);// llena lista de los operadores (es para que quede mas prolijo)
-
 
 
 operador_t *operador_crear(char *operador, racional_t *(*funcion) (const racional_t *a, const racional_t *b), int aridad,
@@ -423,6 +411,111 @@ operador_t **tabla_crear(size_t *n){
     //tabla[4] = operador_crear("potencia", racional_elevar, 2, 2, "es una potencia"); //pero hay que hacerla jj
     *n = 4;
     return tabla;
+}
+
+
+racional_t *cadena_a_racional(char *numero){
+    //voy a contar el num de digitos dsps de la coma (primero busco el punto y hasta q sea \0 cuento)
+    //el racional es: numerador = numero pero saco el punto, denominador = 10^(cant nums dsps de punto)
+    
+    size_t largo = strlen(numero);
+    char *num = malloc (largo + 1);
+    if (num == NULL) return NULL;
+    size_t n_num = 0;
+    for (size_t i=0; i<largo; i++){
+        if(numero[i] != '.'){
+            num[n_num++] = numero[i];
+        }
+    }
+    entero_t *numerador = entero_desde_bcd(num, n_num);
+    free (num); //no estoy segura si se libera el arreglo q uso para construir el entero_t
+
+    size_t punto;
+    for (punto = 0; numero[punto] != '\0' && numero[punto] != '.'; punto++);
+    if (punto == largo){
+        //la cadena no tiene punto: numerador = numero, denominador = 1
+        entero_t *denominador = entero_uno();
+        racional_t *racional = racional_crear(false, numerador, denominador);
+        return racional;
+    }
+    //ahora si hay un punto:
+    
+    char *den = malloc(n_num - punto + 1);
+    if (den == NULL){
+        entero_destruir(numerador);
+        return NULL;
+    }
+    den[0] = '1';
+    for(size_t i=1; i< (n_num - punto + 1); i++){
+        den[i] = '0';
+    }
+    entero_t *denominador = entero_desde_bcd(den, (n_num - punto + 1));
+    free (den);
+    racional_t *racional = racional_crear(false, numerador, denominador);
+    return racional;
+}
+
+
+
+
+
+
+
+
+
+
+char *cadena_a_racional(const racional_t *numero, char* acc){//agarro el 10 lo multiplico por precision
+    char *aux = "10";
+
+    //creo que asi va mejor
+    entero_t *precision = entero_desde_bcd(acc, strlen(acc));
+    if(precision == NULL) return NULL;
+    entero_t *diez = entero_desde_bcd(aux,2);
+    if(diez == NULL){
+        entero_destruir(precision);
+        return NULL;
+    }
+    if(!entero_multiplicar(diez, precision)){
+        entero_destruir(precision);
+        entero_destruir(diez);
+        return NULL;
+    }
+    if(!entero_multiplicar(diez, racional_numerador(numero))){
+        entero_destruir(precision);
+        entero_destruir(diez);
+        return NULL;
+    }
+    entero_t * den = entero_clonar(racional_denominador(numero));
+    if(den == NULL){
+        entero_destruir(diez);
+        entero_destruir(precision);
+    }
+
+    if(!entero_dividir(diez, den, NULL)){
+        entero_destruir(diez);
+        entero_destruir(den);
+        entero_destruir(precision);
+        return NULL;
+    }// ahora en num tengo el numero pero multiplicado diez * precision veces
+    
+    size_t n;
+    char *dev = entero_a_bcd(diez, &n); // en n queda el largo del arreglo, hubiese estado bueno documentar eso xd
+    // deberia tener un numero que sea n como entero_t ==> paso el n a char* y hago el entero (tp1??)
+    // no hay otra forma???
+    
+    
+
+    
+    /*
+    casos:
+        - n es mas chico que acc -> agrego 0s hasta que el largo de dev sea igual a acc, despues agrego el 0 adelante
+        - n es mas grande que acc -> agrego un punto en acc posiciones desde el final
+        - n es igual -> agrego un cero adelante
+    */
+    // itero con entero_t. 
+    
+
+    return;
 }
 
 
