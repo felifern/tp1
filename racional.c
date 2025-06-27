@@ -400,11 +400,11 @@ racional_t *racional_inverso_multiplicativo(racional_t *q){
 
 
 racional_t *racional_pi (){
-    char n[] = {'1','3','1','4','1','6'};
-    char d[] = {'1','0','0','0','0','0'};
-    entero_t *num = entero_desde_bcd(n,6);
+    char n[] = {6,1,4,1,3};
+    char d[] = {0,0,0,0,1};
+    entero_t *num = entero_desde_bcd(n,5);
     if (num == NULL) return NULL;
-    entero_t *den = entero_desde_bcd(d,6);
+    entero_t *den = entero_desde_bcd(d,5);
     if (den == NULL){
         entero_destruir(num);
         return NULL;
@@ -412,8 +412,8 @@ racional_t *racional_pi (){
     return racional_crear(0,num,den); 
 }
 racional_t *racional_e (){
-    char n[] = {'2','7','1','8','2'};
-    char d[] = {'1','0','0','0','0'};
+    char n[] = {2,8,1,7,2};
+    char d[] = {0,0,0,0,1};
     entero_t *num = entero_desde_bcd(n,5);
     if (num == NULL) return NULL;
     entero_t *den = entero_desde_bcd(d,5);
@@ -425,8 +425,8 @@ racional_t *racional_e (){
 }
 
 racional_t *racional_phi (){
-    char n[] = {'1','6','1','8'};
-    char d[] = {'1','0','0','0'};
+    char n[] = {8,1,6,1};
+    char d[] = {0,0,0,1};
     entero_t *num = entero_desde_bcd(n,4);
     if (num == NULL) return NULL;
     entero_t *den = entero_desde_bcd(d,4);
@@ -437,5 +437,3 @@ racional_t *racional_phi (){
     return racional_crear(0,num,den); 
 }
 
-// las comento porque tiran error, pero estabamos inicializando char* con ints
-//listo jeje
