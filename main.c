@@ -21,6 +21,21 @@ typedef struct {
 
 void elemento_destruir(elemento_t*elemento);
 
+void destruir_elemento(void*elemento){
+    elemento_destruir((elemento_t *)elemento);
+}
+
+void elemento_destruir(elemento_t*elemento){
+    free(elemento->elemento);
+    free(elemento);
+}
+
+void destruir_racional(void *racional){
+    racional_destruir((racional_t *)racional);
+}
+
+
+
 operador_t *buscar(operador_t **operadores, size_t oplen , char * x) { // buscamos los operadores por "+", "-", ("identificadores"(?))
 	for (size_t i = 0; i<oplen; i++){
         if(strcmp(operadores[i]->operador, x) == 0){
@@ -285,23 +300,24 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
 
 }
 
+racional_t *cadena_a_racional(char *numero);
 
 racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t oplen){ //llegamos aca con la notacion bien escrita (cualquier error se detecta cuando paso de infija a postfija)
 
     pila_t *pila = pila_crear(); //va a ser una pila con racionales_t
     if (pila == NULL){
         //libero la mem de polaca? (xq si el algoritmo funciona bien, terminas liberandola toda)
-        cola_destruir(polaca,elemento_destruir);
+        cola_destruir(polaca,destruir_elemento);
         return NULL;
     }
     while (!cola_esta_vacia(polaca)){
         elemento_t *simbolo = cola_desencolar(polaca);
 
         if (simbolo->tipo == NUMERO){
-            racional_t *numero;//falta implementar una funcion q pase de cadena a racional_t (o ver como hacerlo con las funciones q ya tenemos)
+            racional_t *numero = cadena_a_racional(simbolo->elemento);//falta implementar una funcion q pase de cadena a racional_t (o ver como hacerlo con las funciones q ya tenemos)
             if (!pila_apilar(pila, numero)){
-                pila_destruir(pila, racional_destruir);
-                cola_destruir(polaca,elemento_destruir);
+                pila_destruir(pila, destruir_racional);
+                cola_destruir(polaca,destruir_elemento);
                 return NULL;
             }
         }
@@ -309,8 +325,8 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
         else if (simbolo->tipo == OPERADOR || simbolo->tipo == FUNCION){
             operador_t *operador = buscar(operadores, oplen, simbolo->elemento);
             if (operador == NULL){
-                pila_destruir(pila, racional_destruir);
-                cola_destruir(polaca, elemento_destruir);
+                pila_destruir(pila, destruir_racional);
+                cola_destruir(polaca, destruir_elemento);
                 return NULL;
             }
             int aridad = operador->aridad;
@@ -322,23 +338,25 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
             if (aridad == 1){
                 racional_t *a = pila_desapilar(pila);
                 if (a == NULL){
-                    pila_destruir(pila, racional_destruir);
-                    cola_destruir(polaca,elemento_destruir);
+                    pila_destruir(pila, destruir_racional);
+                    cola_destruir(polaca,destruir_elemento);
                     return NULL;
                 }
             }
             if (aridad == 2){
                 //el primero q sale es el segundo parametro
                 racional_t *b = pila_desapilar(pila);
+                racional_imprimir(b);
                 if (b == NULL){
-                    pila_destruir(pila, racional_destruir);
-                    cola_destruir(polaca,elemento_destruir);
+                    pila_destruir(pila, destruir_racional);
+                    cola_destruir(polaca,destruir_elemento);
                     return NULL;
                 }
                 racional_t *a = pila_desapilar(pila);
+                racional_imprimir(a);
                 if (a == NULL){
-                    pila_destruir(pila, racional_destruir);
-                    cola_destruir(polaca,elemento_destruir);
+                    pila_destruir(pila, destruir_racional);
+                    cola_destruir(polaca,destruir_elemento);
                     racional_destruir(a);
                     return NULL;
                 }
@@ -348,8 +366,8 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
             if (a != NULL) racional_destruir(a);
             if (b != NULL) racional_destruir(b);
             if (resultado == NULL){
-                    cola_destruir(polaca,elemento_destruir);
-                    pila_destruir(pila,racional_destruir);
+                    cola_destruir(polaca,destruir_elemento);
+                    pila_destruir(pila,destruir_racional);
                     return NULL;
             }
             pila_apilar(pila, resultado);
@@ -358,12 +376,12 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
     //deberia quedar un solo elemento pero chequeamos por si las moscas ahre
     racional_t * resultado_final = pila_desapilar(pila);
     if (resultado_final == NULL || !pila_esta_vacia(pila)){
-        pila_destruir(pila, racional_destruir);
+        pila_destruir(pila, destruir_racional);
         if (resultado_final != NULL) racional_destruir(resultado_final);
-        cola_destruir(polaca,elemento_destruir);  
+        cola_destruir(polaca,destruir_elemento);  
         return NULL;     
     }
-    pila_destruir(pila,racional_destruir);
+    pila_destruir(pila,destruir_racional);
     return resultado_final;
 }           
 
@@ -414,24 +432,34 @@ operador_t **tabla_crear(size_t *n){
 }
 
 
-racional_t *cadena_a_racional(char *numero){
+racional_t *cadena_a_racional(char *numero){ //anda perfectoooooooo
     //voy a contar el num de digitos dsps de la coma (primero busco el punto y hasta q sea \0 cuento)
     //el racional es: numerador = numero pero saco el punto, denominador = 10^(cant nums dsps de punto)
     
-    size_t largo = strlen(numero);
-    char *num = malloc (largo + 1);
+    size_t largo = strlen(numero) ;
+    char *num = malloc (largo);
     if (num == NULL) return NULL;
     size_t n_num = 0;
+    
+    
     for (size_t i=0; i<largo; i++){
         if(numero[i] != '.'){
-            num[n_num++] = numero[i];
-        }
+            num[n_num++] = numero[i] - '0';// ERA MENOS EL 0 ASDASDASDHASHUIFBGSHDB
+        }// Y CON EL ARREGLO DADO VUELTA, chau me mato
+    }//el formato bcd ese que nos habia dicho santisi era eso, dado vuelta. yo tampoco me acordaba la verdad.
+
+    for(size_t j = 0; j < n_num / 2; j++) {
+        char aux = num[j];
+        num[j] = num[n_num - j - 1];
+        num[n_num - j - 1] = aux;
     }
+    
     entero_t *numerador = entero_desde_bcd(num, n_num);
     free (num); //no estoy segura si se libera el arreglo q uso para construir el entero_t
+    // no entiendo si no estas seguro si se libera, o si se deberia (pero si se libera).
 
     size_t punto;
-    for (punto = 0; numero[punto] != '\0' && numero[punto] != '.'; punto++);
+    for (punto = 0; numero[punto] != '\0' && numero[punto] != '.'; punto++);//aca contas los numeros adelante del punto? deberian sar los de atras(?)
     if (punto == largo){
         //la cadena no tiene punto: numerador = numero, denominador = 1
         entero_t *denominador = entero_uno();
@@ -440,31 +468,26 @@ racional_t *cadena_a_racional(char *numero){
     }
     //ahora si hay un punto:
     
-    char *den = malloc(n_num - punto + 1);
+    char *den = malloc(n_num - punto);
+
     if (den == NULL){
         entero_destruir(numerador);
         return NULL;
     }
-    den[0] = '1';
-    for(size_t i=1; i< (n_num - punto + 1); i++){
-        den[i] = '0';
+
+    den[n_num - punto - 1] = 1;
+    for(size_t i = 0; i < n_num - punto - 1 ; i++){
+        den[n_num - punto - 2 - i] = 0;
     }
-    entero_t *denominador = entero_desde_bcd(den, (n_num - punto + 1));
+
+    entero_t *denominador = entero_desde_bcd(den, (n_num - punto)); //creo que estos tamanios de char *den son los que estan bien.
     free (den);
     racional_t *racional = racional_crear(false, numerador, denominador);
     return racional;
 }
 
-
-
-
-
-
-
-
-
-
-char *cadena_a_racional(const racional_t *numero, char* acc){//agarro el 10 lo multiplico por precision
+/*
+char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo multiplico por precision
     char *aux = "10";
 
     //creo que asi va mejor
@@ -506,18 +529,18 @@ char *cadena_a_racional(const racional_t *numero, char* acc){//agarro el 10 lo m
     
 
     
-    /*
-    casos:
-        - n es mas chico que acc -> agrego 0s hasta que el largo de dev sea igual a acc, despues agrego el 0 adelante
-        - n es mas grande que acc -> agrego un punto en acc posiciones desde el final
-        - n es igual -> agrego un cero adelante
-    */
+    
+    //casos:
+    //    - n es mas chico que acc -> agrego 0s hasta que el largo de dev sea igual a acc, despues agrego el 0 adelante
+    //    - n es mas grande que acc -> agrego un punto en acc posiciones desde el final
+    //    - n es igual -> agrego un cero adelante
+    
     // itero con entero_t. 
     
 
     return;
 }
-
+*/
 
 
 
@@ -537,22 +560,22 @@ int main(){
     suma.funcion(a, b);
     racional_imprimir(elementos[0]);
     */
-    size_t tablen;
-    operador_t **tabla = tabla_crear(&tablen);
+    //size_t oplen;
+    //operador_t **operadores = tabla_crear(&oplen);
     cola_t *prueba;
-    cola_t *prueba2;
+    //cola_t *prueba2;
     
     prueba = leer_linea();
     elemento_t *leo;
 
-    prueba2 = pasar_a_postfija(prueba, tabla, tablen);
+    //prueba2 = pasar_a_postfija(prueba, operadores, oplen);
     
-    while((leo = cola_desencolar(prueba2)) != NULL){
-        printf("%s", leo->elemento);
+    while((leo = cola_desencolar(prueba)) != NULL){
+        racional_imprimir(cadena_a_racional(leo->elemento));
         printf("\n");
     }
 
-    
+    //racional_imprimir(operar_postfija(prueba2, operadores, oplen));
     
     printf("pastel de papa");
     printf("pastel de papaAAAAA");
