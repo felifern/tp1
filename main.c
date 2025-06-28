@@ -586,7 +586,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo m
     size_t j = 0;
     char *nuevo = NULL;
     char *aux = NULL;
-    while(entero_comparar(entero_largo,cero) == 0){//aca me fijo que sea distinto de 0???
+    while(entero_comparar(entero_largo,cero) == 0){//aca me fijo que sea distinto de 0??? deberia abarcar todos los casos
         if(entero_comparar(entero_largo,precision) == 0){
             //poner el punto
             aux = realloc(nuevo, i + 2);
@@ -607,8 +607,10 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo m
         }
         nuevo = aux;
         entero_restar(entero_largo, uno);
-    }//asi deberia andar creo
+    }//esta al reves, obvio como no.
     nuevo[i]= '\0';
+    
+    
     //casos:
     //    - n es mas chico que acc -> agrego 0s hasta que el largo de dev sea igual a acc, despues agrego el 0 adelante
     //    - n es mas grande que acc -> agrego un punto en acc posiciones desde el final
