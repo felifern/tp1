@@ -8,6 +8,7 @@
 #include "operador.h"
 #include <stdlib.h>
 #include <ctype.h>
+#include <math.h>
 
 //#include "elemento.h"
 
@@ -486,14 +487,30 @@ racional_t *cadena_a_racional(char *numero){ //anda perfectoooooooo
     return racional;
 }
 
-/*
+size_t binario_a_bcd(char bcd[], unsigned long entero){
+    size_t i=0;
+        while (entero > 0){
+            bcd[i] = entero % 10;
+            i++;
+            entero /= 10;
+        }
+
+    return i;
+}
+
 char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo multiplico por precision
-    char *aux = "10";
+    char *dz = {0,1};
 
     //creo que asi va mejor
+    size_t acclen= strlen(acc);
+    for(size_t j = 0; j < acclen / 2; j++) {
+        char aux = acc[j];
+        acc[j] = acc[acclen - j - 1];
+        acc[acclen - j - 1] = aux;
+    }
     entero_t *precision = entero_desde_bcd(acc, strlen(acc));
     if(precision == NULL) return NULL;
-    entero_t *diez = entero_desde_bcd(aux,2);
+    entero_t *diez = entero_desde_bcd(dz,2);
     if(diez == NULL){
         entero_destruir(precision);
         return NULL;
@@ -525,10 +542,37 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo m
     char *dev = entero_a_bcd(diez, &n); // en n queda el largo del arreglo, hubiese estado bueno documentar eso xd
     // deberia tener un numero que sea n como entero_t ==> paso el n a char* y hago el entero (tp1??)
     // no hay otra forma???
-    
-    
-
-    
+    char *largo = malloc(log(n) + 2);
+    size_t nlen = binario_a_bcd(largo, n);
+    entero_t *entero_largo = entero_desde_bcd(largo, nlen);
+    entero_t *cero = entero_cero();
+    entero_t *uno = entero_uno();
+    size_t i = 0;
+    size_t j = 0;
+    char *nuevo = NULL;
+    char *aux = NULL;
+    while(entero_comparar(entero_largo,cero) == 0){//aca me fijo que sea distinto de 0???
+        if(entero_comparar(entero_largo,precision) == 0){
+            //poner el punto
+            aux = realloc(nuevo, i + 1);
+            if(aux == NULL){
+                //liberar memoria
+                return NULL;
+            }
+            nuevo = aux;
+            nuevo [i]=  '.';
+        }
+        entero_restar(entero_largo, uno);
+        
+        nuevo[i] = dev[j];
+        aux = realloc(nuevo, i + 1);
+        if(aux == NULL){
+            //liberar memoria
+            return NULL;
+        }
+        nuevo = aux;
+        entero_restar(entero_largo, uno);
+    }//asi deberia andar creo
     
     //casos:
     //    - n es mas chico que acc -> agrego 0s hasta que el largo de dev sea igual a acc, despues agrego el 0 adelante
