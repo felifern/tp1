@@ -311,13 +311,12 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
         cola_destruir(polaca,destruir_elemento);
         return NULL;
     }
-    printf("A");
+
     while (!cola_esta_vacia(polaca)){
         elemento_t *simbolo = cola_desencolar(polaca);
-        printf("A");
         if (simbolo->tipo == NUMERO){
             racional_t *numero = cadena_a_racional(simbolo->elemento);//falta implementar una funcion q pase de cadena a racional_t (o ver como hacerlo con las funciones q ya tenemos)
-            racional_imprimir(numero);
+            //racional_imprimir(numero);
             if (!pila_apilar(pila, numero)){
                 pila_destruir(pila, destruir_racional);
                 cola_destruir(polaca,destruir_elemento);
@@ -334,12 +333,13 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
             }
             
             int aridad = operador->aridad;
+            printf("%d", aridad);
             racional_t *(*funcion) (const racional_t *a, const racional_t *b) = operador->funcion;
             racional_t *a = NULL;
             racional_t *b = NULL;
             
             if (aridad == 1){
-                racional_t *a = pila_desapilar(pila);
+                a = pila_desapilar(pila);
                 if (a == NULL){
                     pila_destruir(pila, destruir_racional);
                     cola_destruir(polaca,destruir_elemento);
@@ -348,27 +348,27 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
             }
             if (aridad == 2){
                 //el primero q sale es el segundo parametro
-                racional_t *b = pila_desapilar(pila);
-                racional_imprimir(b);
+                b = pila_desapilar(pila);
+                //racional_imprimir(b);
                 if (b == NULL){
                     pila_destruir(pila, destruir_racional);
                     cola_destruir(polaca,destruir_elemento);
                     return NULL;
                 }
-                racional_t *a = pila_desapilar(pila);
-                racional_imprimir(a);
+                /*racional_t * esta definido arriba*/a = pila_desapilar(pila);
+                //racional_imprimir(a);
                 if (a == NULL){
                     pila_destruir(pila, destruir_racional);
                     cola_destruir(polaca,destruir_elemento);
-                    racional_destruir(a);
+                    racional_destruir(b);
                     return NULL;
                 }
             }
             //racional_imprimir(a);
             //racional_imprimir(b);
             racional_t *resultado = funcion(a,b);
-            if (a != NULL) racional_destruir(a);
-            if (b != NULL) racional_destruir(b);
+            racional_destruir(a);
+            racional_destruir(b);
             if (resultado == NULL){
                     cola_destruir(polaca,destruir_elemento);
                     pila_destruir(pila,destruir_racional);
@@ -379,6 +379,8 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
     }
     //deberia quedar un solo elemento pero chequeamos por si las moscas ahre
     racional_t * resultado_final = pila_desapilar(pila);
+    //racional_imprimir(resultado_final);
+
     if (resultado_final == NULL || !pila_esta_vacia(pila)){
         pila_destruir(pila, destruir_racional);
         if (resultado_final != NULL) racional_destruir(resultado_final);
@@ -462,9 +464,9 @@ operador_t **tabla_crear(size_t *n){
     tabla[9] = operador_crear("e", e_racional, 0, 9, "eeeee");
     tabla[10] = operador_crear("phi", phi_racional, 0, 9, "fibo");
     //tabla[4] = operador_crear("potencia", racional_elevar, 2, 2, "es una potencia"); //pero hay que hacerla jj
-    *n = 4;
+    *n = 10;
     return tabla;
-}
+}// IMPORTANTISIMO CAMBIAR EL NUMERO DE ELEMENTOS, podria implementarse adentro de operador_crear, asi no hace falta acordarse
 
 racional_t *cadena_a_racional(char *numero){ //anda perfectoooooooo
     //voy a contar el num de digitos dsps de la coma (primero busco el punto y hasta q sea \0 cuento)
@@ -637,6 +639,8 @@ int main(){
     suma.funcion(a, b);
     racional_imprimir(elementos[0]);
     */
+
+
     size_t oplen;
     operador_t **operadores = tabla_crear(&oplen);
     cola_t *prueba;
@@ -653,8 +657,9 @@ int main(){
     //    printf("%s", leo->elemento);
     //    printf("\n");
     //}
-
+    printf("\n");
     racional_imprimir(operar_postfija(prueba2, operadores, oplen));
+    printf("\n");
     
     printf("pastel de papa");
     printf("pastel de papaAAAAA");

@@ -385,8 +385,7 @@ racional_t *racional_abs(const racional_t *q){
 }
 
 racional_t *racional_inverso(const racional_t *q){
-    bool s_inverso = (q->s == true)? false : true;
-    racional_t  *q_inv = racional_crear(s_inverso, q->n, q->d);
+    racional_t  *q_inv = racional_crear(!q->s, q->n, q->d);
     if (q_inv == NULL) return NULL;
     return q_inv;
 }
@@ -411,6 +410,7 @@ racional_t *racional_pi (){
     }
     return racional_crear(0,num,den); 
 }
+
 racional_t *racional_e (){
     char n[] = {2,8,1,7,2};
     char d[] = {0,0,0,0,1};
