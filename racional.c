@@ -361,7 +361,7 @@ racional_t *racional_dividir(const racional_t *q, const racional_t *r){
     return qc;  
 }
 
-racional_t *racional_factorial(racional_t *q){
+racional_t *racional_factorial(const racional_t *q){
     if (entero_comparar(q->d, entero_uno()) != 0 || q->s == true) return NULL;// esto va a terner una leak, porque cada vez que comparo hago un num(estoy probando)
     entero_t *nuevo_n = entero_clonar(q->n);
     if (nuevo_n == NULL) return NULL;
@@ -378,20 +378,20 @@ racional_t *racional_factorial(racional_t *q){
     return nuevo_q;
 }
 
-racional_t *racional_abs(racional_t *q){
-    racional_t *q_abs = racional_crear(0,q->n, q->d);
+racional_t *racional_abs(const racional_t *q){
+    racional_t *q_abs = racional_crear(false ,q->n, q->d);
     if (q_abs == NULL) return NULL;
     return q_abs;
 }
 
-racional_t *racional_inverso(racional_t *q){
+racional_t *racional_inverso(const racional_t *q){
     bool s_inverso = (q->s == true)? false : true;
     racional_t  *q_inv = racional_crear(s_inverso, q->n, q->d);
     if (q_inv == NULL) return NULL;
     return q_inv;
 }
 
-racional_t *racional_inverso_multiplicativo(racional_t *q){
+racional_t *racional_inverso_multiplicativo(const racional_t *q){
     racional_t *q_inv = racional_crear(q->s,q->d,q->n);
     if (q_inv == NULL) return NULL;
     return q_inv;

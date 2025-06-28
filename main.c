@@ -311,11 +311,13 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
         cola_destruir(polaca,destruir_elemento);
         return NULL;
     }
+    printf("A");
     while (!cola_esta_vacia(polaca)){
         elemento_t *simbolo = cola_desencolar(polaca);
-
+        printf("A");
         if (simbolo->tipo == NUMERO){
             racional_t *numero = cadena_a_racional(simbolo->elemento);//falta implementar una funcion q pase de cadena a racional_t (o ver como hacerlo con las funciones q ya tenemos)
+            racional_imprimir(numero);
             if (!pila_apilar(pila, numero)){
                 pila_destruir(pila, destruir_racional);
                 cola_destruir(polaca,destruir_elemento);
@@ -330,9 +332,9 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
                 cola_destruir(polaca, destruir_elemento);
                 return NULL;
             }
+            
             int aridad = operador->aridad;
             racional_t *(*funcion) (const racional_t *a, const racional_t *b) = operador->funcion;
-
             racional_t *a = NULL;
             racional_t *b = NULL;
             
@@ -362,7 +364,8 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
                     return NULL;
                 }
             }
-
+            //racional_imprimir(a);
+            //racional_imprimir(b);
             racional_t *resultado = funcion(a,b);
             if (a != NULL) racional_destruir(a);
             if (b != NULL) racional_destruir(b);
@@ -418,6 +421,30 @@ int prioridad, char *descripcion){
     return nuevo;
 }
 
+//ENVOLTORIOS
+
+racional_t *inverso_racional (const racional_t *a, const racional_t *b){
+    return racional_inverso(a);
+}
+racional_t *factorial_racional (const racional_t *a, const racional_t *b){
+    return racional_factorial(a);
+}
+racional_t *abs_racional (const racional_t *a, const racional_t *b){
+    return racional_abs(a);
+}
+racional_t *inverso_multiplicativo_racional(const racional_t *a, const racional_t *b){
+    return racional_inverso_multiplicativo(a);
+}
+racional_t *pi_racional(const racional_t *a, const racional_t *b){
+    return racional_pi();
+}
+racional_t *e_racional(const racional_t *a, const racional_t *b){
+    return racional_e();
+}
+racional_t *phi_racional(const racional_t *a, const racional_t *b){
+    return racional_phi();
+}
+
 operador_t **tabla_crear(size_t *n){
     operador_t **tabla = malloc(20 * sizeof(operador_t*));
     if(tabla == NULL){
@@ -427,11 +454,17 @@ operador_t **tabla_crear(size_t *n){
     tabla[1] = operador_crear("-", racional_restar, 2, 1, "es una resta");
     tabla[2] = operador_crear("*", racional_multiplicar, 2, 2, "es un producto");
     tabla[3] = operador_crear("/", racional_dividir, 2, 3, "es una division");
+    tabla[4] = operador_crear("_", inverso_racional, 1, 5, "(-1)");
+    tabla[5] = operador_crear("fact", factorial_racional, 1, 9, "factorial");
+    tabla[6] = operador_crear("abs", abs_racional, 1, 9, "modulo");
+    tabla[7] = operador_crear("inv", inverso_multiplicativo_racional, 1, 9, "inverso multiplicativo(?");
+    tabla[8] = operador_crear("pi", pi_racional, 0, 9, "pi");
+    tabla[9] = operador_crear("e", e_racional, 0, 9, "eeeee");
+    tabla[10] = operador_crear("phi", phi_racional, 0, 9, "fibo");
     //tabla[4] = operador_crear("potencia", racional_elevar, 2, 2, "es una potencia"); //pero hay que hacerla jj
     *n = 4;
     return tabla;
 }
-
 
 racional_t *cadena_a_racional(char *numero){ //anda perfectoooooooo
     //voy a contar el num de digitos dsps de la coma (primero busco el punto y hasta q sea \0 cuento)
@@ -499,7 +532,7 @@ size_t binario_a_bcd(char bcd[], unsigned long entero){
 }
 
 char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo multiplico por precision
-    char *dz = {0,1};
+    char dz[] = {0,1};
 
     //creo que asi va mejor
     size_t acclen= strlen(acc);
@@ -554,7 +587,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo m
     while(entero_comparar(entero_largo,cero) == 0){//aca me fijo que sea distinto de 0???
         if(entero_comparar(entero_largo,precision) == 0){
             //poner el punto
-            aux = realloc(nuevo, i + 1);
+            aux = realloc(nuevo, i + 2);
             if(aux == NULL){
                 //liberar memoria
                 return NULL;
@@ -565,7 +598,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo m
         entero_restar(entero_largo, uno);
         
         nuevo[i] = dev[j];
-        aux = realloc(nuevo, i + 1);
+        aux = realloc(nuevo, i + 2);
         if(aux == NULL){
             //liberar memoria
             return NULL;
@@ -573,7 +606,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo m
         nuevo = aux;
         entero_restar(entero_largo, uno);
     }//asi deberia andar creo
-    
+    nuevo[i]= '\0';
     //casos:
     //    - n es mas chico que acc -> agrego 0s hasta que el largo de dev sea igual a acc, despues agrego el 0 adelante
     //    - n es mas grande que acc -> agrego un punto en acc posiciones desde el final
@@ -582,9 +615,9 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo m
     // itero con entero_t. 
     
 
-    return;
+    return nuevo;
 }
-*/
+
 
 
 
@@ -604,22 +637,24 @@ int main(){
     suma.funcion(a, b);
     racional_imprimir(elementos[0]);
     */
-    //size_t oplen;
-    //operador_t **operadores = tabla_crear(&oplen);
+    size_t oplen;
+    operador_t **operadores = tabla_crear(&oplen);
     cola_t *prueba;
-    //cola_t *prueba2;
+    cola_t *prueba2;
+    //cola_t *prueba3;
     
     prueba = leer_linea();
-    elemento_t *leo;
+    //elemento_t *leo;
 
-    //prueba2 = pasar_a_postfija(prueba, operadores, oplen);
+    prueba2 = pasar_a_postfija(prueba, operadores, oplen);
+    //prueba3 = pasar_a_postfija(prueba, operadores, oplen);
     
-    while((leo = cola_desencolar(prueba)) != NULL){
-        racional_imprimir(cadena_a_racional(leo->elemento));
-        printf("\n");
-    }
+    //while((leo = cola_desencolar(prueba2)) != NULL){
+    //    printf("%s", leo->elemento);
+    //    printf("\n");
+    //}
 
-    //racional_imprimir(operar_postfija(prueba2, operadores, oplen));
+    racional_imprimir(operar_postfija(prueba2, operadores, oplen));
     
     printf("pastel de papa");
     printf("pastel de papaAAAAA");
