@@ -331,7 +331,7 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
             }
             
             int aridad = operador->aridad;
-            printf("%d", aridad);
+            //printf("%d", aridad);
             racional_t *(*funcion) (const racional_t *a, const racional_t *b) = operador->funcion;
             racional_t *a = NULL;
             racional_t *b = NULL;
@@ -625,12 +625,92 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
     return nuevo;
 }
 
+int main(int argc, char *argv[]){
+    if (argc > 2) return 1;
+    size_t oplen;
+    operador_t **operadores = tabla_crear(&oplen);
+    if (strcmp(argv[1],"ayuda") == 0){
+        printf("Calculadora TA130\n");
+        printf("Uso: %s [OPCIONES]\n", argv[0]);
+        printf("OPCIONES:\n");
+        printf("    ayuda: Muestra esta ayuda.\n");
+        printf("    racional: Selecciona salida racional.\n");
+        printf("    <n>: Salida con <n> dígitos de precisión.\n");
+        printf("OPERADORES:\n");
+        for(size_t i=0; i<oplen; i++){
+            printf("    ");
+            if(operadores[i]->aridad == 2){
+                printf("a%sb: %s\n",operadores[i]->operador,operadores[i]->descripcion);
+            }
+            if(operadores[i]->aridad == 1){
+                printf("%s(a): %s\n", operadores[i]->operador, operadores[i]->descripcion);
+            }
+            if(operadores[i]->aridad == 0){
+                printf("%s: %s\n", operadores[i]->operador, operadores[i]->descripcion);
+            }
+        }
+        //tabla_destruir
+        return 0;
+    }
+
+    while(1){
+        cola_t *input_infija = leer_linea();
+        if (input_infija == NULL){
+            //hay que hacer un tabla_destruir? xd
+            return 1;
+        }
+        cola_t *input_postfija = pasar_a_postfija(input_infija, operadores, oplen);
+        cola_destruir(input_infija, NULL);
+        if (input_postfija == NULL){
+            //tabla_destruir
+            return 1;
+        }
+        racional_t *resultado = operar_postfija(input_postfija, operadores, oplen);
+        if (resultado == NULL){
+            cola_destruir(input_postfija, destruir_elemento);
+            //tabla_destruir
+            return 1;
+        }
+        if (argc == 1){
+            //si no aclaran nada se imprime con 8 digitos de precision
+            char *rta = racional_a_cadena(resultado, "8");
+            racional_destruir(resultado);
+            if (rta == NULL){
+                //tabla_destruir
+                return 1;
+            }
+            printf("%s\n",rta);
+            free(rta);
+        }
+        else if(strcmp(argv[1],"racional") == 0){
+            if (!racional_imprimir(resultado)){
+                racional_destruir(resultado);
+                //tabla_destruir
+                return 1;
+            }
+            printf("\n");
+            racional_destruir(resultado);
+        }
+        else{
+            char *rta = racional_a_cadena(resultado, argv[1]);
+            racional_destruir(resultado);
+            if (rta == NULL){
+                //tabla_destruir
+                return 1;
+            }
+            printf("%s\n",rta);
+            free(rta);
+        }
+    }
+
+    //tabla_destruir
+    return 0;
+}
 
 
-
-
+/*  QUEDA ESTO PARA LAS PRUEBAS QUE HAGAN FALTA
 int main(){    
-    /*
+    
     size_t oplen;
     operador_t *op = operadores(&oplen);
 
@@ -643,7 +723,7 @@ int main(){
     suma.funcion = suma_wrpr;
     suma.funcion(a, b);
     racional_imprimir(elementos[0]);
-    */
+    
 
 
     size_t oplen;
@@ -672,3 +752,4 @@ int main(){
 
     return 0;
 }
+*/
