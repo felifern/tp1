@@ -53,6 +53,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
     if (cola == NULL) return NULL;
     int c;
     c = getchar();
+    if (c== EOF) return NULL;
     while(c != EOF && c != '\n') {
         
         if (c == ' '){
