@@ -36,6 +36,7 @@ void destruir_racional(void *racional){
 }
 
 
+//cosas importantes del trabajo
 
 operador_t *buscar(operador_t **operadores, size_t oplen , char * x) { // buscamos los operadores por "+", "-", ("identificadores"(?))
 	for (size_t i = 0; i<oplen; i++){
@@ -45,7 +46,6 @@ operador_t *buscar(operador_t **operadores, size_t oplen , char * x) { // buscam
     }
     return NULL;
 } // si devuelve null no existe el operador
-
 
 cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123","+","fact","(","5","*","3",")"}
 
@@ -203,8 +203,6 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
     return cola;
 }
 //esto esta perfecto
-
-
 cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){// recibo una cola con los elementos_t
     //bool parentesis_abierto = false;
 
@@ -391,9 +389,7 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
     return resultado_final;
 }           
 
-
 operador_t *operadores(size_t *n);// llena lista de los operadores (es para que quede mas prolijo)
-
 
 operador_t *operador_crear(char *operador, racional_t *(*funcion) (const racional_t *a, const racional_t *b), int aridad,
 int prioridad, char *descripcion){
@@ -422,6 +418,9 @@ int prioridad, char *descripcion){
 
     return nuevo;
 }
+
+
+
 
 //ENVOLTORIOS
 
@@ -533,24 +532,27 @@ size_t binario_a_bcd(char bcd[], unsigned long entero){
     return i;
 }
 
-char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo multiplico por precision
+char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo elevo precision
     char dz[] = {0,1};
-
     //creo que asi va mejor
+
     size_t acclen= strlen(acc);
+
     for(size_t j = 0; j < acclen / 2; j++) {
         char aux = acc[j];
         acc[j] = acc[acclen - j - 1];
         acc[acclen - j - 1] = aux;
     }
+
     entero_t *precision = entero_desde_bcd(acc, strlen(acc));
+    
     if(precision == NULL) return NULL;
     entero_t *diez = entero_desde_bcd(dz,2);
     if(diez == NULL){
         entero_destruir(precision);
         return NULL;
     }
-    if(!entero_multiplicar(diez, precision)){
+    if(!entero_multiplicar(diez, precision)){// aca no es multiplicar, hay que elevar a precision. sigo cuando tenga esta de elevar.
         entero_destruir(precision);
         entero_destruir(diez);
         return NULL;
@@ -573,7 +575,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo m
         return NULL;
     }// ahora en num tengo el numero pero multiplicado diez * precision veces
     
-    size_t n;
+    size_t n = 0;
     char *dev = entero_a_bcd(diez, &n); // en n queda el largo del arreglo, hubiese estado bueno documentar eso xd
     // deberia tener un numero que sea n como entero_t ==> paso el n a char* y hago el entero (tp1??)
     // no hay otra forma???
@@ -586,7 +588,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo m
     size_t j = 0;
     char *nuevo = NULL;
     char *aux = NULL;
-    while(entero_comparar(entero_largo,cero) == 0){//aca me fijo que sea distinto de 0??? deberia abarcar todos los casos
+    while(entero_comparar(entero_largo,cero) != 0){//aca me fijo que sea distinto de 0??? deberia abarcar todos los casos
         if(entero_comparar(entero_largo,precision) == 0){
             //poner el punto
             aux = realloc(nuevo, i + 2);
@@ -599,13 +601,14 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo m
         }
         entero_restar(entero_largo, uno);
         
-        nuevo[i] = dev[j];
+        
         aux = realloc(nuevo, i + 2);
         if(aux == NULL){
             //liberar memoria
             return NULL;
         }
         nuevo = aux;
+        nuevo[i] = dev[n - j];
         entero_restar(entero_largo, uno);
     }//esta al reves, obvio como no.
     nuevo[i]= '\0';
@@ -659,8 +662,9 @@ int main(){
     //    printf("%s", leo->elemento);
     //    printf("\n");
     //}
+    char acc[] = "10";
     printf("\n");
-    racional_imprimir(operar_postfija(prueba2, operadores, oplen));
+    printf("%s",racional_a_cadena(operar_postfija(prueba2, operadores, oplen), acc));
     printf("\n");
     
     printf("pastel de papa");

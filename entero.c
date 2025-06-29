@@ -23,6 +23,9 @@ typedef struct {
 
 
 
+
+
+
 entero_t *_crear(size_t k){ // devuelve un entero_t con el los digitos en 0 de cantidad k 
     uint32_t *aux;
     entero_t *entero = malloc(sizeof (entero_t));
@@ -86,6 +89,31 @@ bool _redimensionar(entero_t *entero, size_t k){
     entero->n = k;
     return true;
     
+}
+
+bool entero_desplazar_unidades_derecha(entero_t *e, size_t unidades){// no se puede redimensionar de una, corta por el otro lado digamos(es como dividir por 2^32*i caso der)
+    entero_t *nuevo = _crear(e->n - unidades);
+    if(nuevo == NULL) return false;
+    for(size_t i = 0; i< e->n - unidades; i++){
+        nuevo->d[i] = e->d [i + unidades];
+    }
+    free(e->d);
+    e->d = nuevo->d;
+    e->n = nuevo->n;
+    free(nuevo);
+    return true;
+}
+
+bool entero_desplazar_unidades_izquierda(entero_t *e, size_t unidades){// estas deplazan 32*i unidades para el lado indicado (es como multiplicar por 2^32*i caso izq)
+    if(!_redimensionar(e, e->n + unidades)) return false;
+    
+    for(size_t i = 0; i < e->n; i++){
+        e->d[e->n - i] = e->d [e->n - i - unidades];
+    }// lo corro
+    for(size_t i = 0; i < e->n; i++){
+        e->d[e->n - i] = 0;// ???
+    }//pongo 0s donde no hay numeros que nos importan
+    return true;
 }
 
 int entero_comparar(const entero_t *a, const entero_t *b){
@@ -548,10 +576,337 @@ bool entero_multiplicar(entero_t *a, const entero_t *b) {
     return true;
 }
 
+bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NADA HABRIA QUE IGUALAR LOS DIGITOS DE LOS NUMEROS (LLENAR CON 0s A IZQ) 
+    //supongo que tienen igual longitud, para pensar el programa primero (pero falta esto de arriba)
+    //yo creo que esto de la longitud se puede resolver rapido con una terna, pero no tengo muy claro como se usa
+    
+    if(a->n == 1 && b->n == 1){// deberia pasar la verdad
+        if(!_redimensionar(a,2)) return false;
+        uint64_t resultado = a->d[0] * b->d[0];
+        a->d[0]= (uint32_t)(resultado & 0xFFFFFFFF);
+        a->d[1]= (uint32_t)((resultado >> 32) & 0xFFFFFFFF);
+        return true;
+    }
+
+
+    entero_t *a_uno = entero_clonar(a);
+    if(a_uno == NULL) return false;
+    if(!entero_desplazar_unidades_derecha(a_uno, a->n - a->n/2)) return false;// aca podria estar haciendo un malloc de 0 tamanio
+    
+    entero_t *a_cero = _crear(a->n/2);
+    if(a_cero == NULL){
+        entero_destruir(a_uno);
+        return false;
+    }
+    for(size_t i = 0; i < a->n /2; i++){
+        a_cero->d[i] = a->d[i];
+    }
+    
+    
+    entero_t *b_uno = entero_clonar(b);
+    if(b_uno == NULL){
+        entero_destruir(a_uno);
+        entero_destruir(a_uno);
+        return false;
+    }
+    if(!entero_desplazar_unidades_derecha(b_uno, b->n - b->n/2)) return false;// aca podria estar haciendo un malloc de 0 tamanio
+    
+    entero_t *b_cero = _crear(b->n/2);
+    if(b_cero == NULL){
+        entero_destruir(a_uno);
+        entero_destruir(a_cero);
+        entero_destruir(b_uno);
+        return false;
+    }
+    for(size_t i = 0; i < b->n /2; i++){
+        b_cero->d[i] = b->d[i];
+    }
+    //me olvido lo de arriba, tengo b_0,a_0,b_1,a_1
+
+    entero_t *z_cero = entero_clonar(a_cero);
+    if(z_cero == NULL){
+        entero_destruir(a_uno);
+        entero_destruir(a_cero);
+        entero_destruir(b_uno);
+        entero_destruir(b_cero);
+    }
+    entero_t *z_dos = entero_clonar(a_uno);
+    if(z_dos == NULL){
+        entero_destruir(a_uno);
+        entero_destruir(a_cero);
+        entero_destruir(b_uno);
+        entero_destruir(b_cero);
+        entero_destruir(z_cero);
+    }
+    entero_t *z_tres = entero_clonar(a_uno);
+    if(z_tres == NULL){
+        entero_destruir(a_uno);
+        entero_destruir(a_cero);
+        entero_destruir(b_uno);
+        entero_destruir(b_cero);
+        entero_destruir(z_cero);
+        entero_destruir(z_dos);
+    }
+    entero_t *aux = entero_clonar(b_uno);
+    if(aux == NULL){
+        entero_destruir(a_uno);
+        entero_destruir(a_cero);
+        entero_destruir(b_uno);
+        entero_destruir(b_cero);
+        entero_destruir(z_cero);
+        entero_destruir(z_dos);
+        entero_destruir(z_tres);
+    }
+    //cuentas
+    //si falla aca tengo que destruir: a_uno, a_cero, b_uno, b_cero, z_cero, z_dos, z_tres, z_aux y creo que nada mas
+    if(!entero_sumar(z_tres, a_cero)){
+        entero_destruir(a_uno);
+        entero_destruir(a_cero);
+        entero_destruir(b_uno);
+        entero_destruir(b_cero);
+        entero_destruir(z_cero);
+        entero_destruir(z_dos);
+        entero_destruir(z_tres);
+        entero_destruir(aux);
+    }
+    if(!entero_sumar(aux, b_cero)){
+        entero_destruir(a_uno);
+        entero_destruir(a_cero);
+        entero_destruir(b_uno);
+        entero_destruir(b_cero);
+        entero_destruir(z_cero);
+        entero_destruir(z_dos);
+        entero_destruir(z_tres);
+        entero_destruir(aux);
+    }
+    if(!entero_multiplicar2(z_tres, aux)){
+        entero_destruir(a_uno);
+        entero_destruir(a_cero);
+        entero_destruir(b_uno);
+        entero_destruir(b_cero);
+        entero_destruir(z_cero);
+        entero_destruir(z_dos);
+        entero_destruir(z_tres);
+        entero_destruir(aux);
+    }//z_tres estaria
+    if(!entero_multiplicar2(z_cero, b_cero)){
+        entero_destruir(a_uno);
+        entero_destruir(a_cero);
+        entero_destruir(b_uno);
+        entero_destruir(b_cero);
+        entero_destruir(z_cero);
+        entero_destruir(z_dos);
+        entero_destruir(z_tres);
+        entero_destruir(aux);
+    }//z_cero listo
+    if(!entero_multiplicar2(z_dos,b_uno)){
+        entero_destruir(a_uno);
+        entero_destruir(a_cero);
+        entero_destruir(b_uno);
+        entero_destruir(b_cero);
+        entero_destruir(z_cero);
+        entero_destruir(z_dos);
+        entero_destruir(z_tres);
+        entero_destruir(aux);
+    }//z_dos listo
+    //ahora xy = z2 * B^2m + z1 * B^m + z0
+    // z1 = z3-z2-z0
+    // yyy B^i == desplazar a izquierda en nuestro caso m = a->n/2
+    entero_t *z_uno = entero_clonar(z_tres);
+    if(!entero_restar(z_uno, z_dos)){
+        entero_destruir(a_uno);
+        entero_destruir(a_cero);
+        entero_destruir(b_uno);
+        entero_destruir(b_cero);
+        entero_destruir(z_cero);
+        entero_destruir(z_dos);
+        entero_destruir(z_tres);
+        entero_destruir(aux);
+        entero_destruir(z_uno);
+    }
+    if(!entero_restar(z_uno, z_dos)){
+        entero_destruir(a_uno);
+        entero_destruir(a_cero);
+        entero_destruir(b_uno);
+        entero_destruir(b_cero);
+        entero_destruir(z_cero);
+        entero_destruir(z_dos);
+        entero_destruir(z_tres);
+        entero_destruir(aux);
+        entero_destruir(z_uno);
+    }
+    if(!entero_desplazar_unidades_derecha(z_dos, a->n)){
+        entero_destruir(a_uno);
+        entero_destruir(a_cero);
+        entero_destruir(b_uno);
+        entero_destruir(b_cero);
+        entero_destruir(z_cero);
+        entero_destruir(z_dos);
+        entero_destruir(z_tres);
+        entero_destruir(aux);
+        entero_destruir(z_uno);
+    }
+    if(!entero_desplazar_unidades_derecha(z_uno, a->n/2)){
+        entero_destruir(a_uno);
+        entero_destruir(a_cero);
+        entero_destruir(b_uno);
+        entero_destruir(b_cero);
+        entero_destruir(z_cero);
+        entero_destruir(z_dos);
+        entero_destruir(z_tres);
+        entero_destruir(aux);
+        entero_destruir(z_uno);
+    }
+    if(!entero_sumar(z_uno,z_dos)){
+        entero_destruir(a_uno);
+        entero_destruir(a_cero);
+        entero_destruir(b_uno);
+        entero_destruir(b_cero);
+        entero_destruir(z_cero);
+        entero_destruir(z_dos);
+        entero_destruir(z_tres);
+        entero_destruir(aux);
+        entero_destruir(z_uno);
+    }
+    if(!entero_sumar(z_uno,z_cero)){
+        entero_destruir(a_uno);
+        entero_destruir(a_cero);
+        entero_destruir(b_uno);
+        entero_destruir(b_cero);
+        entero_destruir(z_cero);
+        entero_destruir(z_dos);
+        entero_destruir(z_tres);
+        entero_destruir(aux);
+        entero_destruir(z_uno);
+    }
+    free(a->d);
+    a->d = z_uno->d;
+    a->n = z_uno->n;
+    free(z_uno);
+    entero_destruir(a_uno);
+    entero_destruir(a_cero);
+    entero_destruir(b_uno);
+    entero_destruir(b_cero);
+    entero_destruir(z_cero);
+    entero_destruir(z_dos);
+    entero_destruir(z_tres);
+    entero_destruir(aux);
+    //...
+    return true;
+}//no se. esta medio raro jajaj. hay que probarlo
+
+bool entero_elevar(entero_t *b, const entero_t *e){// creo que esta, tambien hay que probarla
+    entero_t *uno = entero_uno();
+    if(uno == NULL) return false;
+    entero_t *cero = entero_cero();
+    if(cero == NULL){
+        entero_destruir(uno);
+        return false;
+    }
+    
+    if(entero_comparar(e,cero) == 0){
+        entero_destruir(cero);
+        free(b->d);
+        b->d = uno->d;
+        b->n = uno->n;
+        free(uno);
+        return true;
+    }
+    if(entero_comparar(e, uno) == 0){
+        entero_destruir(uno);
+        entero_destruir(cero);
+        return true;
+    }
+    entero_t *dos = _crear(1);
+    if(dos == NULL){
+        entero_destruir(uno);
+        entero_destruir(cero);
+        return false;
+    }
+    dos->d[0] = 2;
+    dos->n = 1;
+    entero_t *bcpy = entero_clonar(b);
+    if(bcpy == NULL){
+        entero_destruir(uno);
+        entero_destruir(cero);
+        entero_destruir(dos);
+        return false;
+    }
+    entero_t *ecpy = entero_clonar(e);
+    if(ecpy == NULL){
+        entero_destruir(uno);
+        entero_destruir(cero);
+        entero_destruir(dos);
+        entero_destruir(bcpy);
+        return false;
+    }
+    entero_t *ecpy2 = entero_clonar(e);
+    if(ecpy2 == NULL){
+        entero_destruir(uno);
+        entero_destruir(cero);
+        entero_destruir(dos);
+        entero_destruir(bcpy);
+        entero_destruir(ecpy);
+        return false;
+    }
+    if(!entero_dividir(ecpy, dos, NULL)){
+        entero_destruir(uno);
+        entero_destruir(cero);
+        entero_destruir(dos);
+        entero_destruir(bcpy);
+        entero_destruir(ecpy);
+        entero_destruir(ecpy2);
+        return false;
+    }
+    if(!entero_restar(ecpy2, ecpy)){
+        entero_destruir(uno);
+        entero_destruir(cero);
+        entero_destruir(dos);
+        entero_destruir(bcpy);
+        entero_destruir(ecpy);
+        entero_destruir(ecpy2);
+        return false;
+    }
+    if(!entero_elevar(b, ecpy)){
+        entero_destruir(uno);
+        entero_destruir(cero);
+        entero_destruir(dos);
+        entero_destruir(bcpy);
+        entero_destruir(ecpy);
+        entero_destruir(ecpy2);
+        return false;
+    }
+    if(!entero_elevar(bcpy, ecpy2)){
+        entero_destruir(uno);
+        entero_destruir(cero);
+        entero_destruir(dos);
+        entero_destruir(bcpy);
+        entero_destruir(ecpy);
+        entero_destruir(ecpy2);
+        return false;
+    }
+    if(!entero_multiplicar2(b, bcpy)){
+        entero_destruir(uno);
+        entero_destruir(cero);
+        entero_destruir(dos);
+        entero_destruir(bcpy);
+        entero_destruir(ecpy);
+        entero_destruir(ecpy2);
+        return false;
+    }
+    return true;
+}
+
+
 bool entero_factorial(entero_t *n){
     if(n == NULL) return false;
     entero_t *cero = entero_cero();
+    if(cero == NULL) return false;
     entero_t *uno = entero_uno();
+    if(uno == NULL){
+        entero_destruir(cero);
+        return false;
+    }
     if(entero_comparar(n,  cero) == 0 || entero_comparar(n,  uno) == 0){
         free(n->d);
         n->n = 1;
@@ -562,29 +917,29 @@ bool entero_factorial(entero_t *n){
     }
     else{
         entero_t *nc = entero_clonar(n);
-        entero_restar(nc,uno);
-        entero_factorial(nc);
-        entero_multiplicar(n, nc);
+        if(nc == NULL){
+            entero_destruir(uno);
+            entero_destruir(cero);
+            return false;
+        }
+        if(!entero_restar(nc,uno)){
+            entero_destruir(uno);
+            entero_destruir(cero);
+            entero_destruir(nc);
+        }
+        if(!entero_factorial(nc)){
+            entero_destruir(uno);
+            entero_destruir(cero);
+            entero_destruir(nc);
+        }
+        if(!entero_multiplicar(n, nc)){
+            entero_destruir(uno);
+            entero_destruir(cero);
+            entero_destruir(nc);
+        }
         entero_destruir(cero);
         entero_destruir(uno);
         entero_destruir(nc);
         return true;
     }
 }// hay que implementar. (feli) HAY QUE HACER LAS VERIFICACIONES PERTINENTES cualquiera.
-
-/*
-entero_t *entero_factorial2(entero_t *n){
-    entero_t *cero = entero_cero();
-    entero_t *uno = entero_uno();
-    if(entero_comparar(n,  cero) == 0 || entero_comparar(n,  uno) == 0){
-        entero_destruir(cero);
-        return uno;
-    }
-    else{
-        entero_t *nc = entero_clonar(n);
-        entero_restar(nc,uno);
-        entero_multiplicar(n, entero_factorial(nc));
-        return n;
-    }
-}// hay que implementar. (feli) HAY QUE HACER LAS VERIFICACIONES PERTINENTES cualquiera.
-*/
