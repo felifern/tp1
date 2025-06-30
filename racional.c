@@ -396,7 +396,23 @@ racional_t *racional_inverso_multiplicativo(const racional_t *q){
     return q_inv;
 }
 
-
+racional_t *racional_elevar(const racional_t *b,const racional_t *e){
+    racional_t *res;
+    if(b == NULL) return NULL;
+    if(e == NULL) return NULL; // estas dos validaciones no se.
+    if(e->s) res = racional_crear(b->s,b->n,b->d);
+    else res = racional_crear(b->s,b->d,b->n);
+    if(res == NULL) return NULL;
+    if(!entero_elevar(res->n, e->n)){
+        racional_destruir(res);
+        return NULL;
+    }
+    if(!entero_elevar(res->d, e->n)){
+        racional_destruir(res);
+        return NULL;
+    }
+    return res;
+}
 
 racional_t *racional_pi (){
     char n[] = {6,1,4,1,3};

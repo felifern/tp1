@@ -579,19 +579,22 @@ bool entero_multiplicar(entero_t *a, const entero_t *b) {
 bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NADA HABRIA QUE IGUALAR LOS DIGITOS DE LOS NUMEROS (LLENAR CON 0s A IZQ) 
     //supongo que tienen igual longitud, para pensar el programa primero (pero falta esto de arriba)
     //yo creo que esto de la longitud se puede resolver rapido con una terna, pero no tengo muy claro como se usa
-    
+
+
+
     if(a->n == 1 && b->n == 1){// deberia pasar la verdad
+        uint64_t resultado = (uint64_t)a->d[0] * (uint64_t)b->d[0];
         if(!_redimensionar(a,2)) return false;
-        uint64_t resultado = a->d[0] * b->d[0];
         a->d[0]= (uint32_t)(resultado & 0xFFFFFFFF);
-        a->d[1]= (uint32_t)((resultado >> 32) & 0xFFFFFFFF);
+        a->d[1]= (uint32_t)(resultado >> 32);
+        a->n = 2;
         return true;
     }
 
 
     entero_t *a_uno = entero_clonar(a);
     if(a_uno == NULL) return false;
-    if(!entero_desplazar_unidades_derecha(a_uno, a->n - a->n/2)) return false;// aca podria estar haciendo un malloc de 0 tamanio
+    if(!entero_desplazar_unidades_derecha(a_uno, a->n/2)) return false;// aca podria estar haciendo un malloc de 0 tamanio
     
     entero_t *a_cero = _crear(a->n/2);
     if(a_cero == NULL){
@@ -609,7 +612,7 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NA
         entero_destruir(a_uno);
         return false;
     }
-    if(!entero_desplazar_unidades_derecha(b_uno, b->n - b->n/2)) return false;// aca podria estar haciendo un malloc de 0 tamanio
+    if(!entero_desplazar_unidades_derecha(b_uno, b->n/2)) return false;// aca podria estar haciendo un malloc de 0 tamanio
     
     entero_t *b_cero = _crear(b->n/2);
     if(b_cero == NULL){
@@ -713,7 +716,7 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NA
     // z1 = z3-z2-z0
     // yyy B^i == desplazar a izquierda en nuestro caso m = a->n/2
     entero_t *z_uno = entero_clonar(z_tres);
-    if(!entero_restar(z_uno, z_dos)){
+    if(z_uno == NULL){
         entero_destruir(a_uno);
         entero_destruir(a_cero);
         entero_destruir(b_uno);
@@ -722,7 +725,6 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NA
         entero_destruir(z_dos);
         entero_destruir(z_tres);
         entero_destruir(aux);
-        entero_destruir(z_uno);
     }
     if(!entero_restar(z_uno, z_dos)){
         entero_destruir(a_uno);
@@ -735,7 +737,7 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NA
         entero_destruir(aux);
         entero_destruir(z_uno);
     }
-    if(!entero_desplazar_unidades_derecha(z_dos, a->n)){
+    if(!entero_restar(z_uno, z_cero)){
         entero_destruir(a_uno);
         entero_destruir(a_cero);
         entero_destruir(b_uno);
@@ -746,7 +748,18 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NA
         entero_destruir(aux);
         entero_destruir(z_uno);
     }
-    if(!entero_desplazar_unidades_derecha(z_uno, a->n/2)){
+    if(!entero_desplazar_unidades_izquierda(z_dos, a->n)){
+        entero_destruir(a_uno);
+        entero_destruir(a_cero);
+        entero_destruir(b_uno);
+        entero_destruir(b_cero);
+        entero_destruir(z_cero);
+        entero_destruir(z_dos);
+        entero_destruir(z_tres);
+        entero_destruir(aux);
+        entero_destruir(z_uno);
+    }
+    if(!entero_desplazar_unidades_izquierda(z_uno, a->n/2)){
         entero_destruir(a_uno);
         entero_destruir(a_cero);
         entero_destruir(b_uno);
@@ -804,7 +817,7 @@ bool entero_elevar(entero_t *b, const entero_t *e){// creo que esta, tambien hay
         return false;
     }
     
-    if(entero_comparar(e,cero) == 0){
+    if(entero_comparar(e, cero) == 0){
         entero_destruir(cero);
         free(b->d);
         b->d = uno->d;
@@ -885,7 +898,7 @@ bool entero_elevar(entero_t *b, const entero_t *e){// creo que esta, tambien hay
         entero_destruir(ecpy2);
         return false;
     }
-    if(!entero_multiplicar2(b, bcpy)){
+    if(!entero_multiplicar(b, bcpy)){
         entero_destruir(uno);
         entero_destruir(cero);
         entero_destruir(dos);
@@ -894,6 +907,13 @@ bool entero_elevar(entero_t *b, const entero_t *e){// creo que esta, tambien hay
         entero_destruir(ecpy2);
         return false;
     }
+    entero_destruir(uno);
+    entero_destruir(cero);
+    entero_destruir(dos);
+    entero_destruir(ecpy);
+    entero_destruir(ecpy2);
+    entero_destruir(bcpy);
+
     return true;
 }
 

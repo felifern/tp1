@@ -26,11 +26,10 @@ void destruir_elemento(void*elemento){
     elemento_destruir((elemento_t *)elemento);
 }
 
-void elemento_destruir(elemento_t*elemento){
+void elemento_destruir(elemento_t *elemento){
     free(elemento->elemento);
     free(elemento);
 }
-
 void destruir_racional(void *racional){
     racional_destruir((racional_t *)racional);
 }
@@ -39,7 +38,7 @@ void destruir_racional(void *racional){
 //cosas importantes del trabajo
 
 operador_t *buscar(operador_t **operadores, size_t oplen , char * x) { // buscamos los operadores por "+", "-", ("identificadores"(?))
-	for (size_t i = 0; i<oplen; i++){
+    for (size_t i = 0; i < oplen; i++){
         if(strcmp(operadores[i]->operador, x) == 0){
             return operadores[i];
         }
@@ -64,7 +63,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             int j = 1;
             char *num = malloc(sizeof(char) * 2);
             if(num == NULL){
-                cola_destruir(cola, NULL);
+                cola_destruir(cola, destruir_elemento);
                 return NULL;
             }
             num[0] = c;
@@ -77,7 +76,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
                 char *aux = realloc(num, sizeof(char) * (j + 2));
                 if (aux == NULL){
                     free(num);
-                    cola_destruir(cola,NULL);
+                    cola_destruir(cola,destruir_elemento);
                     return NULL;
                 }
                 num = aux;
@@ -89,7 +88,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             elemento_t *elemento = malloc(sizeof(elemento_t));
             if (elemento == NULL){
                 free(num);
-                cola_destruir(cola, NULL);
+                cola_destruir(cola, destruir_elemento);
                 return NULL;
             }
             elemento->elemento = num;
@@ -98,7 +97,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             if (!cola_encolar(cola,elemento)){
                 free(elemento->elemento);
                 free (elemento);
-                cola_destruir(cola,NULL);
+                cola_destruir(cola,destruir_elemento);
                 return NULL;
             }
 
@@ -108,7 +107,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             int j = 1;
             char *fun = malloc(sizeof(char) * 2); 
             if(fun == NULL){
-                cola_destruir(cola, NULL);
+                cola_destruir(cola, destruir_elemento);
                 return NULL;
             }
             fun[0] = c;
@@ -117,7 +116,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
                 char *aux = realloc(fun, sizeof(char) * (j + 2));
                 if(aux == NULL) {
                     free(fun);
-                    cola_destruir(cola, NULL);
+                    cola_destruir(cola, destruir_elemento);
                     return NULL;
                 } 
                 fun = aux;
@@ -129,7 +128,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             elemento_t *elemento = malloc(sizeof(elemento_t));
             if (elemento == NULL){
                 free(fun);
-                cola_destruir(cola, NULL);
+                cola_destruir(cola, destruir_elemento);
                 return NULL;
             }
             elemento->elemento = fun;
@@ -137,7 +136,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             if (!cola_encolar(cola, elemento)){
                 free(elemento->elemento); 
                 free(elemento);
-                cola_destruir(cola, NULL);
+                cola_destruir(cola, destruir_elemento);
                 return NULL;
             }
 
@@ -156,7 +155,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             elemento_t *elemento = malloc(sizeof(elemento_t));
             if (elemento == NULL){
                 free(operador);
-                cola_destruir(cola, NULL);
+                cola_destruir(cola, destruir_elemento);
                 return NULL;
             }
             elemento->elemento = operador;
@@ -164,16 +163,15 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             if (!cola_encolar(cola, elemento)){
                 free(elemento->elemento); 
                 free(elemento);
-                cola_destruir(cola, NULL);
+                cola_destruir(cola, destruir_elemento);
                 return NULL;
             }
-
             continue;
         }
         else if (strchr("+-*/^_", c) != NULL && c != '\0'){ // esta funcion que encontraste devuelve un puntero a la primera ocurrencia de c en la linea esa, por eso dintinto de null tambien hay que chequear que sea distinto del '\0' era el comentario mas largo de la historia
             char *operador = malloc(sizeof(char) * 2); 
             if(operador == NULL){
-                cola_destruir(cola, NULL);
+                cola_destruir(cola, destruir_elemento);
                 return NULL;
             }
             operador[0] = c;
@@ -183,7 +181,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             elemento_t *elemento = malloc(sizeof(elemento_t));
             if (elemento == NULL){
                 free(operador);
-                cola_destruir(cola, NULL);
+                cola_destruir(cola, destruir_elemento);
                 return NULL;
             }
             elemento->elemento = operador;
@@ -191,7 +189,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             if (!cola_encolar(cola, elemento)){
                 free(elemento->elemento); 
                 free(elemento);
-                cola_destruir(cola, NULL);
+                cola_destruir(cola, destruir_elemento);
                 return NULL;
             }
 
@@ -303,7 +301,6 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
 racional_t *cadena_a_racional(char *numero);
 
 racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t oplen){ //llegamos aca con la notacion bien escrita (cualquier error se detecta cuando paso de infija a postfija)
-
     pila_t *pila = pila_crear(); //va a ser una pila con racionales_t
     if (pila == NULL){
         //libero la mem de polaca? (xq si el algoritmo funciona bien, terminas liberandola toda)
@@ -393,7 +390,7 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
 operador_t *operadores(size_t *n);// llena lista de los operadores (es para que quede mas prolijo)
 
 operador_t *operador_crear(char *operador, racional_t *(*funcion) (const racional_t *a, const racional_t *b), int aridad,
-int prioridad, char *descripcion){
+int prioridad, char *descripcion, size_t *n){
     operador_t *nuevo = malloc(sizeof(operador_t));
     if (nuevo == NULL){
         return NULL;
@@ -416,7 +413,7 @@ int prioridad, char *descripcion){
     nuevo->aridad = aridad;
     nuevo->prioridad = prioridad;
     nuevo->descripcion = descripcion;
-
+    *n= *n + 1;
     return nuevo;
 }
 
@@ -452,21 +449,20 @@ operador_t **tabla_crear(size_t *n){
     if(tabla == NULL){
         return NULL;
     }
-    tabla[0] = operador_crear("+", racional_sumar, 2, 1, "es una suma");
-    tabla[1] = operador_crear("-", racional_restar, 2, 1, "es una resta");
-    tabla[2] = operador_crear("*", racional_multiplicar, 2, 2, "es un producto");
-    tabla[3] = operador_crear("/", racional_dividir, 2, 3, "es una division");
-    tabla[4] = operador_crear("_", inverso_racional, 1, 5, "(-1)");
-    tabla[5] = operador_crear("fact", factorial_racional, 1, 9, "factorial");
-    tabla[6] = operador_crear("abs", abs_racional, 1, 9, "modulo");
-    tabla[7] = operador_crear("inv", inverso_multiplicativo_racional, 1, 9, "inverso multiplicativo(?");
-    tabla[8] = operador_crear("pi", pi_racional, 0, 9, "pi");
-    tabla[9] = operador_crear("e", e_racional, 0, 9, "eeeee");
-    tabla[10] = operador_crear("phi", phi_racional, 0, 9, "fibo");
+    tabla[0] = operador_crear("+", racional_sumar, 2, 1, "es una suma", n);
+    tabla[1] = operador_crear("-", racional_restar, 2, 1, "es una resta", n);
+    tabla[2] = operador_crear("*", racional_multiplicar, 2, 2, "es un producto", n);
+    tabla[3] = operador_crear("/", racional_dividir, 2, 3, "es una division", n);
+    tabla[4] = operador_crear("_", inverso_racional, 1, 5, "(-1)", n);
+    tabla[5] = operador_crear("fact", factorial_racional, 1, 9, "factorial", n);
+    tabla[6] = operador_crear("abs", abs_racional, 1, 9, "modulo", n);
+    tabla[7] = operador_crear("inv", inverso_multiplicativo_racional, 1, 9, "inverso multiplicativo(?", n);
+    tabla[8] = operador_crear("pi", pi_racional, 0, 9, "pi", n);
+    tabla[9] = operador_crear("e", e_racional, 0, 9, "eeeee", n);
+    tabla[10] = operador_crear("phi", phi_racional, 0, 9, "fibo", n);
     //tabla[4] = operador_crear("potencia", racional_elevar, 2, 2, "es una potencia"); //pero hay que hacerla jj
-    *n = 10;
     return tabla;
-}// IMPORTANTISIMO CAMBIAR EL NUMERO DE ELEMENTOS, podria implementarse adentro de operador_crear, asi no hace falta acordarse
+}// meti lo del numero en la funcion, no deberia haber problemas ahora
 
 racional_t *cadena_a_racional(char *numero){ //anda perfectoooooooo
     //voy a contar el num de digitos dsps de la coma (primero busco el punto y hasta q sea \0 cuento)
@@ -500,6 +496,8 @@ racional_t *cadena_a_racional(char *numero){ //anda perfectoooooooo
         //la cadena no tiene punto: numerador = numero, denominador = 1
         entero_t *denominador = entero_uno();
         racional_t *racional = racional_crear(false, numerador, denominador);
+        entero_destruir(numerador);
+        entero_destruir(denominador);
         return racional;
     }
     //ahora si hay un punto:
@@ -539,21 +537,22 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
 
     size_t acclen= strlen(acc);
 
-    for(size_t j = 0; j < acclen / 2; j++) {
+    for(size_t j = 0; j < acclen / 2 ; j++) {
         char aux = acc[j];
         acc[j] = acc[acclen - j - 1];
         acc[acclen - j - 1] = aux;
     }
-
     entero_t *precision = entero_desde_bcd(acc, strlen(acc));
-    
+    entero_imprimir(precision);
     if(precision == NULL) return NULL;
+
+
     entero_t *diez = entero_desde_bcd(dz,2);
     if(diez == NULL){
         entero_destruir(precision);
         return NULL;
     }
-    if(!entero_multiplicar(diez, precision)){// aca no es multiplicar, hay que elevar a precision. sigo cuando tenga esta de elevar.
+    if(!entero_elevar(diez, precision)){// aca no es multiplicar, hay que elevar a precision. sigo cuando tenga esta de elevar.
         entero_destruir(precision);
         entero_destruir(diez);
         return NULL;
@@ -612,6 +611,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
         nuevo[i] = dev[n - j];
         entero_restar(entero_largo, uno);
     }//esta al reves, obvio como no.
+    if(nuevo == NULL) return NULL;
     nuevo[i]= '\0';
     
     
@@ -625,10 +625,14 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
 
     return nuevo;
 }
-
+/*
 int main(int argc, char *argv[]){
     if (argc > 2) return 1;
     size_t oplen;
+    if (argc == 1){
+        printf("escribir ./calculadora ayuda");
+        return 0;
+    }
     operador_t **operadores = tabla_crear(&oplen);
     if (strcmp(argv[1],"ayuda") == 0){
         printf("Calculadora TA130\n");
@@ -707,50 +711,46 @@ int main(int argc, char *argv[]){
     //tabla_destruir
     return 0;
 }
+*/
+struct racional {
+    bool s;
+    entero_t *n, *d;
+};
 
-
-/*  QUEDA ESTO PARA LAS PRUEBAS QUE HAGAN FALTA
 int main(){    
-    
-    size_t oplen;
-    operador_t *op = operadores(&oplen);
-
-    // imaginamos que de la pila se desapilan "3", "2", "+" o como funcione el algoritmo, queremos sumar 2+3
-    racional_t *a;//ponele que es el 2
-    racional_t *b;// ponele que es el 3
-    racional_t **elementos;// aca guardo el 2 y el 3
-
-    operador_t suma;
-    suma.funcion = suma_wrpr;
-    suma.funcion(a, b);
-    racional_imprimir(elementos[0]);
-    
-
-
-    size_t oplen;
-    operador_t **operadores = tabla_crear(&oplen);
+    //size_t oplen = 0;
+    //operador_t **operadores = tabla_crear(&oplen);
     cola_t *prueba;
-    cola_t *prueba2;
+    //cola_t *prueba2;
     //cola_t *prueba3;
     
     prueba = leer_linea();
-    //elemento_t *leo;
-
-    prueba2 = pasar_a_postfija(prueba, operadores, oplen);
+    elemento_t *leo;
+    //prueba2 = pasar_a_postfija(prueba, operadores, oplen);
     //prueba3 = pasar_a_postfija(prueba, operadores, oplen);
-    
-    //while((leo = cola_desencolar(prueba2)) != NULL){
-    //    printf("%s", leo->elemento);
+    //char acc[]= "50";
+    leo = cola_desencolar(prueba);
+    racional_t *b = cadena_a_racional(leo->elemento);
+    elemento_destruir(leo);
+    leo = cola_desencolar(prueba);
+    racional_t *e = cadena_a_racional(leo->elemento);   
+    elemento_destruir(leo);
+    entero_multiplicar2(b->n, e->n);
+    entero_imprimir(b->n);
+    //while((leo = cola_desencolar(prueba)) != NULL){
+    //    cadena_a_racional(leo->elemento);
+    //    
     //    printf("\n");
     //}
-    char acc[] = "10";
+    //printf("\n");
+    //char *res = racional_a_cadena(operar_postfija(prueba2, operadores, oplen), acc);
+    //printf("%s",res);
+    //printf("\n");
+    racional_destruir(e);
+    racional_destruir(b);
     printf("\n");
-    printf("%s",racional_a_cadena(operar_postfija(prueba2, operadores, oplen), acc));
-    printf("\n");
-    
     printf("pastel de papa");
     printf("pastel de papaAAAAA");
-
+    cola_destruir(prueba, destruir_elemento);
     return 0;
 }
-*/

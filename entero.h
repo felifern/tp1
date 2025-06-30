@@ -30,5 +30,5 @@ bool entero_multiplicar(entero_t *a, const entero_t *b);//
 bool entero_dividir(entero_t *a, const entero_t *b, entero_t **resto);//
 char *entero_a_bcd(const entero_t *entero, size_t *n);//
 bool entero_multiplicar2(entero_t *a, const entero_t *b);
-
+bool entero_elevar(entero_t *b, const entero_t *e);
 #endif
