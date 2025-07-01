@@ -92,26 +92,25 @@ bool _redimensionar(entero_t *entero, size_t k){
 }
 
 bool entero_desplazar_unidades_derecha(entero_t *e, size_t unidades){// no se puede redimensionar de una, corta por el otro lado digamos(es como dividir por 2^32*i caso der)
-    entero_t *nuevo = _crear(e->n - unidades);
-    if(nuevo == NULL) return false;
-    for(size_t i = 0; i< e->n - unidades; i++){
-        nuevo->d[i] = e->d [i + unidades];
+    if(e->n == 1 || unidades>= e->n){
+        _redimensionar(e, 1);
+        e->d[0] = 0;
+        return true;
     }
-    free(e->d);
-    e->d = nuevo->d;
-    e->n = nuevo->n;
-    free(nuevo);
+
+    for(size_t i = 0; i< e->n - unidades; i++){
+        e->d[i] = e->d [i + unidades];
+    }
+    _redimensionar(e,e->n - unidades);
     return true;
 }
 
 bool entero_desplazar_unidades_izquierda(entero_t *e, size_t unidades){// estas deplazan 32*i unidades para el lado indicado (es como multiplicar por 2^32*i caso izq)
-    size_t len = e->n;
     if(!_redimensionar(e, e->n + unidades)) return false;
-    
-    for(size_t i = 0; i <= e->n; i++){
-        e->d[len  - i] = e->d [e->n  - i];
+    for(size_t i = 0; i < e->n - unidades; i++){
+        e->d[e->n - 1  - i] = e->d [e->n - unidades - 1  - i];
     }// lo corro
-    for(size_t i = 0; i < len; i++){
+    for(size_t i = 0; i < unidades; i++){
         e->d[i] = 0;// ???
     }//pongo 0s donde no hay numeros que nos importan
     return true;
@@ -264,7 +263,7 @@ bool entero_sumar(entero_t *a, const entero_t *b){// quedo excelente solo hay qu
         return false;
     }
     for ( i = 0; i<(a->n); i++){
-        if(i<(b->n)){
+        if(i < b->n){
             uint64_t aux = (uint64_t)a->d[i] + (uint64_t)b->d[i] + carry;
             if ((aux & (OVERFLOW_MASK)) != 0){
                 carry = 1;
@@ -308,7 +307,7 @@ bool entero_restar(entero_t *a, const entero_t *b){// literalmente el anterior p
     if(!_redimensionar(a, (a->n) - i)){ //
         return false;
     }
-
+    
     int carry = 0;
     
     for (i = 0; i<(a->n); i++){
@@ -576,16 +575,19 @@ bool entero_multiplicar(entero_t *a, const entero_t *b) {
 
     return true;
 }
-// ANTES DE PASARLE NUMEROS A ESTA FUNCION HAY QUE VER CUAL ES MAS GRANDE.
+
 bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NADA HABRIA QUE IGUALAR LOS DIGITOS DE LOS NUMEROS (LLENAR CON 0s A IZQ) 
     //supongo que tienen igual longitud, para pensar el programa primero (pero falta esto de arriba)
     //yo creo que esto de la longitud se puede resolver rapido con una terna, pero no tengo muy claro como se usa
+    if(a == NULL || b == NULL) return false;
+
     entero_t *bc = entero_clonar(b); 
     if(bc == NULL){
         return false;
     }
 
-    if(a->n == 0 || bc->n == 0){
+    if(a->n == 0 || bc->n == 0){//no deberia pasar nunca
+        printf("pipsas");
         _redimensionar(a, 1);
         a->d[0]= 0;
         return true;
@@ -596,10 +598,11 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NA
     }else{
         _redimensionar(bc, a->n);
     }
+    //printf("\nlen a: %ld, len b: %ld\n", a->n, bc->n);
     //if(!a->n > b->n ? _redimensionar(b, a->n):_redimensionar(a, b->n)) return false;
     // esta no se si esta bien. cuando funcione la pruebo.
-    if(a->n == 1 && b->n == 1){// deberia pasar la verdad
-        uint64_t resultado = (uint64_t)a->d[0] * (uint64_t)b->d[0];
+    if(a->n == 1 && bc->n == 1){// deberia pasar la verdad
+        uint64_t resultado = (uint64_t)a->d[0] * (uint64_t)bc->d[0];
         if(!_redimensionar(a,2)) return false;
         a->d[0]= (uint32_t)(resultado & 0xFFFFFFFF);
         a->d[1]= (uint32_t)(resultado >> 32);
@@ -609,17 +612,16 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NA
 
     entero_t *a_uno = entero_clonar(a);
     if(a_uno == NULL) return false;
-    if(!entero_desplazar_unidades_derecha(a_uno, a->n/2)) return false;// aca podria estar haciendo un malloc de 0 tamanio
+    if(!entero_desplazar_unidades_derecha(a_uno,a->n - a->n/2)) return false;// este resulta tener tamanio a->n/2 - a->n
     
-    entero_t *a_cero = _crear(a->n/2);
+    entero_t *a_cero = _crear(a->n - a->n/2);
     if(a_cero == NULL){
         entero_destruir(a_uno);
         return false;
     }
-    for(size_t i = 0; i < a->n /2; i++){
+    for(size_t i = 0; i < a->n - a->n/2; i++){
         a_cero->d[i] = a->d[i];
     }
-    
     
     entero_t *b_uno = entero_clonar(bc);
     if(b_uno == NULL){
@@ -627,16 +629,16 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NA
         entero_destruir(a_uno);
         return false;
     }
-    if(!entero_desplazar_unidades_derecha(b_uno, bc->n/2)) return false;// aca podria estar haciendo un malloc de 0 tamanio
+    if(!entero_desplazar_unidades_derecha(b_uno,bc->n - bc->n/2)) return false;// aca podria estar haciendo un malloc de 0 tamanio
     
-    entero_t *b_cero = _crear(bc->n/2);
+    entero_t *b_cero = _crear(bc->n -bc->n/2);
     if(b_cero == NULL){
         entero_destruir(a_uno);
         entero_destruir(a_cero);
         entero_destruir(b_uno);
         return false;
     }
-    for(size_t i = 0; i < bc->n /2; i++){
+    for(size_t i = 0; i < bc->n - bc->n/2; i++){
         b_cero->d[i] = bc->d[i];
     }
     //me olvido lo de arriba, tengo b_0,a_0,b_1,a_1
@@ -728,9 +730,11 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NA
         entero_destruir(aux);
     }//z_dos listo
     //ahora xy = z2 * B^2m + z1 * B^m + z0
-    // z1 = z3-z2-z0
+    // z1 = z3-z2-z0 = z3-(z2 + z0)
     // yyy B^i == desplazar a izquierda en nuestro caso m = a->n/2
     entero_t *z_uno = entero_clonar(z_tres);
+    entero_t *z_suma = entero_clonar(z_dos);
+    
     if(z_uno == NULL){
         entero_destruir(a_uno);
         entero_destruir(a_cero);
@@ -741,7 +745,9 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NA
         entero_destruir(z_tres);
         entero_destruir(aux);
     }
-    if(!entero_restar(z_uno, z_dos)){
+    if(!entero_sumar(z_suma, z_cero)){
+    }
+    if(!entero_restar(z_uno, z_suma)){// esta da false
         entero_destruir(a_uno);
         entero_destruir(a_cero);
         entero_destruir(b_uno);
@@ -752,7 +758,18 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NA
         entero_destruir(aux);
         entero_destruir(z_uno);
     }
-    if(!entero_restar(z_uno, z_cero)){
+    //if(!entero_restar(z_uno, z_cero)){
+    //    entero_destruir(a_uno);
+    //    entero_destruir(a_cero);
+    //    entero_destruir(b_uno);
+    //    entero_destruir(b_cero);
+    //    entero_destruir(z_cero);
+    //    entero_destruir(z_dos);
+    //    entero_destruir(z_tres);
+    //    entero_destruir(aux);
+    //    entero_destruir(z_uno);
+    //}
+    if(!entero_desplazar_unidades_izquierda(z_dos, 2 * a->n - a->n)){
         entero_destruir(a_uno);
         entero_destruir(a_cero);
         entero_destruir(b_uno);
@@ -763,18 +780,7 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NA
         entero_destruir(aux);
         entero_destruir(z_uno);
     }
-    if(!entero_desplazar_unidades_izquierda(z_dos, a->n)){
-        entero_destruir(a_uno);
-        entero_destruir(a_cero);
-        entero_destruir(b_uno);
-        entero_destruir(b_cero);
-        entero_destruir(z_cero);
-        entero_destruir(z_dos);
-        entero_destruir(z_tres);
-        entero_destruir(aux);
-        entero_destruir(z_uno);
-    }
-    if(!entero_desplazar_unidades_izquierda(z_uno, a->n/2)){
+    if(!entero_desplazar_unidades_izquierda(z_uno, a->n - a->n/2)){
         entero_destruir(a_uno);
         entero_destruir(a_cero);
         entero_destruir(b_uno);
@@ -810,7 +816,7 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NA
     free(a->d);
     a->d = z_uno->d;
     a->n = z_uno->n;
-    //free(z_uno);
+    z_uno->d = NULL;
     entero_destruir(a_uno);
     entero_destruir(a_cero);
     entero_destruir(b_uno);
