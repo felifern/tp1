@@ -589,6 +589,8 @@ bool entero_multiplicar(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NAD
     if(a->n == 0 || bc->n == 0){//no deberia pasar nunca
         _redimensionar(a, 1);
         a->d[0]= 0;
+        entero_destruir(bc);
+
         return true;
     }
 
@@ -602,11 +604,12 @@ bool entero_multiplicar(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NAD
         a->d[0]= (uint32_t)(resultado & 0xFFFFFFFF);
         a->d[1]= (uint32_t)(resultado >> 32);
         a->n = 2;
+        entero_destruir(bc);
         return true;
     }
 
     size_t n = (a->n > bc->n) ? a->n : bc->n;
-    if (n % 2 != 0) n++;
+    if (n % 2 != 0) n++;// con esta funciona
     if (!_redimensionar(a, n) || !_redimensionar(bc, n)) {
         entero_destruir(bc);
     return false;
@@ -614,11 +617,15 @@ bool entero_multiplicar(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NAD
 
     entero_t *a_uno = entero_clonar(a);
     if(a_uno == NULL) return false;
-    if(!entero_desplazar_unidades_derecha(a_uno,a->n - a->n/2)) return false;// este resulta tener tamanio a->n/2 - a->n
+    if(!entero_desplazar_unidades_derecha(a_uno,a->n - a->n/2)){ 
+        entero_destruir(bc);
+        return false;
+    }// este resulta tener tamanio a->n/2 - a->n
     
     entero_t *a_cero = _crear(a->n - a->n/2);
     if(a_cero == NULL){
         entero_destruir(a_uno);
+        entero_destruir(bc);
         return false;
     }
     for(size_t i = 0; i < a->n - a->n/2; i++){
@@ -629,6 +636,8 @@ bool entero_multiplicar(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NAD
     if(b_uno == NULL){
         entero_destruir(a_uno);
         entero_destruir(a_uno);
+        entero_destruir(bc);
+
         return false;
     }
     if(!entero_desplazar_unidades_derecha(b_uno,bc->n - bc->n/2)) return false;// aca podria estar haciendo un malloc de 0 tamanio
@@ -638,6 +647,8 @@ bool entero_multiplicar(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NAD
         entero_destruir(a_uno);
         entero_destruir(a_cero);
         entero_destruir(b_uno);
+        entero_destruir(bc);
+
         return false;
     }
     for(size_t i = 0; i < bc->n - bc->n/2; i++){
@@ -819,6 +830,7 @@ bool entero_multiplicar(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NAD
     a->d = z_uno->d;
     a->n = z_uno->n;
     z_uno->d = NULL;
+    entero_destruir(z_uno);
     entero_destruir(a_uno);
     entero_destruir(a_cero);
     entero_destruir(b_uno);
@@ -826,7 +838,9 @@ bool entero_multiplicar(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NAD
     entero_destruir(z_cero);
     entero_destruir(z_dos);
     entero_destruir(z_tres);
+    entero_destruir(z_suma);
     entero_destruir(aux);
+    entero_destruir(bc);
     //...
     return true;
 }//no se. esta medio raro jajaj. hay que probarlo
