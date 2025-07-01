@@ -296,7 +296,7 @@ bool entero_restar(entero_t *a, const entero_t *b){// literalmente el anterior p
         return false;
     }
     size_t i;
-    
+    /*//parece ser que para karatsuba o como se escriba esto romppe el programa
     for(i = 0; i < a->n; i++){
         if(a->d[a->n - i - 1] == 0){
             continue;
@@ -307,7 +307,7 @@ bool entero_restar(entero_t *a, const entero_t *b){// literalmente el anterior p
     if(!_redimensionar(a, (a->n) - i)){ //
         return false;
     }
-    
+    */
     int carry = 0;
     
     for (i = 0; i<(a->n); i++){
@@ -535,7 +535,7 @@ void imprimir_resultados(entero_t *division, const entero_t *resto, entero_t *en
 
 }
 
-bool entero_multiplicar(entero_t *a, const entero_t *b) {
+bool entero_multiplicar2(entero_t *a, const entero_t *b) {
     entero_t *aa = _crear(1);
     if(aa == NULL) return false;
 
@@ -576,7 +576,7 @@ bool entero_multiplicar(entero_t *a, const entero_t *b) {
     return true;
 }
 
-bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NADA HABRIA QUE IGUALAR LOS DIGITOS DE LOS NUMEROS (LLENAR CON 0s A IZQ) 
+bool entero_multiplicar(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NADA HABRIA QUE IGUALAR LOS DIGITOS DE LOS NUMEROS (LLENAR CON 0s A IZQ) 
     //supongo que tienen igual longitud, para pensar el programa primero (pero falta esto de arriba)
     //yo creo que esto de la longitud se puede resolver rapido con una terna, pero no tengo muy claro como se usa
     if(a == NULL || b == NULL) return false;
@@ -587,17 +587,12 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NA
     }
 
     if(a->n == 0 || bc->n == 0){//no deberia pasar nunca
-        printf("pipsas");
         _redimensionar(a, 1);
         a->d[0]= 0;
         return true;
     }
 
-    if(bc->n > a->n){
-        _redimensionar(a, bc->n);
-    }else{
-        _redimensionar(bc, a->n);
-    }
+    
     //printf("\nlen a: %ld, len b: %ld\n", a->n, bc->n);
     //if(!a->n > b->n ? _redimensionar(b, a->n):_redimensionar(a, b->n)) return false;
     // esta no se si esta bien. cuando funcione la pruebo.
@@ -608,6 +603,13 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NA
         a->d[1]= (uint32_t)(resultado >> 32);
         a->n = 2;
         return true;
+    }
+
+    size_t n = (a->n > bc->n) ? a->n : bc->n;
+    if (n % 2 != 0) n++;
+    if (!_redimensionar(a, n) || !_redimensionar(bc, n)) {
+        entero_destruir(bc);
+    return false;
     }
 
     entero_t *a_uno = entero_clonar(a);
@@ -699,7 +701,7 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NA
         entero_destruir(z_tres);
         entero_destruir(aux);
     }
-    if(!entero_multiplicar2(z_tres, aux)){
+    if(!entero_multiplicar(z_tres, aux)){
         entero_destruir(a_uno);
         entero_destruir(a_cero);
         entero_destruir(b_uno);
@@ -709,7 +711,7 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NA
         entero_destruir(z_tres);
         entero_destruir(aux);
     }//z_tres estaria
-    if(!entero_multiplicar2(z_cero, b_cero)){
+    if(!entero_multiplicar(z_cero, b_cero)){
         entero_destruir(a_uno);
         entero_destruir(a_cero);
         entero_destruir(b_uno);
@@ -719,7 +721,7 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NA
         entero_destruir(z_tres);
         entero_destruir(aux);
     }//z_cero listo
-    if(!entero_multiplicar2(z_dos,b_uno)){
+    if(!entero_multiplicar(z_dos,b_uno)){
         entero_destruir(a_uno);
         entero_destruir(a_cero);
         entero_destruir(b_uno);

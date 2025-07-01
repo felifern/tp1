@@ -735,7 +735,7 @@ int main(){
     leo = cola_desencolar(prueba);
     racional_t *e = cadena_a_racional(leo->elemento);   
     elemento_destruir(leo);
-    entero_multiplicar2(b->n, e->n);
+    entero_elevar(b->n, e->n);
     entero_imprimir(b->n);
     //while((leo = cola_desencolar(prueba)) != NULL){
     //    cadena_a_racional(leo->elemento);
