@@ -536,8 +536,9 @@ size_t binario_a_bcd(char bcd[], unsigned long entero){
 }
 
 char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo elevo precision
+    entero_t *uno = entero_uno();
+    int es_uno = entero_comparar(racional_denominador(numero), uno);
     char dz[] = {0,1};
-    //creo que asi va mejor
 
     size_t acclen= strlen(acc);
     char *bcd = malloc(acclen);
@@ -547,109 +548,219 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
     }
     entero_t *precision = entero_desde_bcd(bcd, acclen);
     entero_imprimir(precision);
+    if(es_uno != 0) {
+        if(!entero_restar(precision, uno)){
+
+        }
+    }
+    printf("\n");
     free(bcd);
-    if(precision == NULL) return NULL;
+    if(precision == NULL){
+        entero_destruir(uno);
+        return NULL;
+    }
 
 
     entero_t *diez = entero_desde_bcd(dz,2);
     if(diez == NULL){
         entero_destruir(precision);
+        entero_destruir(uno);
         return NULL;
     }
     if(!entero_elevar(diez, precision)){// aca no es multiplicar, hay que elevar a precision. sigo cuando tenga esta de elevar.
         entero_destruir(precision);
-        entero_destruir(diez);
+        entero_destruir(uno);
         return NULL;
     }
     if(!entero_multiplicar(diez, racional_numerador(numero))){
         entero_destruir(precision);
         entero_destruir(diez);
+        entero_destruir(uno);
         return NULL;
     }
-    entero_t * den = entero_clonar(racional_denominador(numero));
-    if(den == NULL){
+    if(!entero_dividir(diez, racional_denominador(numero), NULL)){
         entero_destruir(diez);
         entero_destruir(precision);
-    }
-    if(!entero_dividir(diez, den, NULL)){
-        entero_destruir(diez);
-        entero_destruir(den);
-        entero_destruir(precision);
+        entero_destruir(uno);
         return NULL;
-    }// ahora en num tengo el numero pero multiplicado diez * precision veces
+    }
     entero_imprimir(diez);// hasta aca estamos.
    
     char *aux = NULL;
     size_t n = 0;
     char *dev1 = entero_a_bcd(diez, &n); // en n queda el largo del arreglo, hubiese estado bueno documentar eso xd
     char *dev = malloc(n + 1);
-    //printf("\n%lu", n);
+    printf("\nn dev es:%lu", n);
 
     for(size_t i = 0; i < n; i++){
         dev [i] = dev1 [n - 1 - i] + '0';
     }
-
     dev[n] = '\0';
-    // deberia tener un numero que sea n como entero_t ==> paso el n a char* y hago el entero (tp1??)
-    // no hay otra forma???
+    
+    free(dev1);
+
     char *largo = malloc(log(n) + 2);
     size_t nlen = binario_a_bcd(largo, n);
     entero_t *entero_largo = entero_desde_bcd(largo, nlen);
-    //printf("\n");
-    //entero_imprimir(entero_largo);
-    //printf("\n");
+    if(entero_largo == NULL){
+        entero_destruir(uno);
+        entero_destruir(diez);
+        entero_destruir(precision);
+        free(largo);
+    }
     entero_t *cero = entero_cero();
-    entero_t *uno = entero_uno();
+    
     size_t i = 0;
     size_t j = 0;
     char *nuevo = NULL;
-    printf("\n largo es");
-    entero_imprimir(entero_largo);
-    printf("\n precision es");
-    entero_imprimir(precision);
+    printf("\n largo es: ");
+    entero_imprimir(entero_largo);// entero largo seria la cantidad de digitos que tiene el numero que voy a devolver
+    printf("\n precision es: ");
+    if (es_uno != 0) {
+        if(!entero_sumar(precision, uno)){
+
+        }
+    }
+    entero_imprimir(precision);// precision seria acc???
+    printf("\n");
+    printf("dev es = %s", dev);
     bool in = false;
-    entero_restar(entero_largo, uno);
     while(entero_comparar(entero_largo,cero) != 0){//aca me fijo que sea distinto de 0??? deberia abarcar todos los casos
-        if(entero_comparar(entero_largo,precision) ==  0 && in == false){
+        
+        if(in == false && entero_comparar(entero_largo,precision) < 0){
             aux = realloc(nuevo, i + 2);
             if(aux == NULL){
-                //liberar memoria
+                entero_destruir(uno);
+                entero_destruir(diez);
+                entero_destruir(precision);
+                entero_destruir(cero);
+                entero_destruir(entero_largo);
+                free(largo);
+
                 return NULL;
             }
             nuevo = aux;
-            //nuevo [i] = dev [j];
-            //i++;
-            //j++;
+            nuevo [0] =  '0';
+            nuevo [1] = '.';
+            i += 2;
+            if(!entero_restar(precision, uno)){
+                //liberar memoria y hacer algo al respecto
+            }
+            while (entero_comparar(entero_largo,precision) != 0){
+                aux = realloc(nuevo, i + 2);
+                if(aux == NULL){
+                entero_destruir(uno);
+                entero_destruir(diez);
+                entero_destruir(precision);
+                entero_destruir(cero);
+                entero_destruir(entero_largo);
+                free(largo);
+
+                return NULL;
+            }
+                nuevo = aux;
+                nuevo[i] = '0';
+                i++;
+                if(!entero_restar(precision, uno)){
+                    entero_destruir(cero);
+                    entero_destruir(diez);
+                    entero_destruir(precision);
+                    entero_destruir(uno);
+                    entero_destruir(entero_largo);
+                    free(nuevo);
+                    free(largo);
+
+                    return NULL;
+                }   
+            }
+            if(!entero_sumar(precision,uno)){
+                //aca lo mismo
+            }
+            while(entero_comparar(precision,cero) != 0){
+                aux = realloc(nuevo, i + 2);
+                if(aux == NULL){
+                    entero_destruir(cero);
+                    entero_destruir(diez);
+                    entero_destruir(precision);
+                    entero_destruir(uno);
+                    entero_destruir(entero_largo);
+                    free(largo);
+                
+                    return NULL;
+                }
+                nuevo = aux;
+                nuevo[i] = dev[j];
+                i++;
+                j++;
+                if(!entero_restar(precision, uno)){
+                    entero_destruir(cero);
+                    entero_destruir(diez);
+                    entero_destruir(precision);
+                    entero_destruir(uno);
+                    entero_destruir(entero_largo);
+                    free(nuevo);
+                    free(largo);
+                
+                    return NULL;
+                }
+            }
+            break;
+        }
+
+
+        if(entero_comparar(entero_largo,precision) ==  0){
+            aux = realloc(nuevo, i + 2);
+            if(aux == NULL){
+                entero_destruir(uno);
+                entero_destruir(diez);
+                entero_destruir(precision);
+                entero_destruir(cero);
+                entero_destruir(entero_largo);
+                free(largo);
+
+                return NULL;
+            }
+            nuevo = aux;
             nuevo [i]=  '.';
-            in = true;
             i++;
+            in = true;
         }
         
         aux = realloc(nuevo, i + 2);
         if(aux == NULL){
-            //liberar memoria
+            entero_destruir(cero);
+            entero_destruir(diez);
+            entero_destruir(precision);
+            entero_destruir(uno);
+            entero_destruir(entero_largo);
+            free(largo);
+
             return NULL;
         }
         nuevo = aux;
         nuevo[i] = dev[j];
-        entero_restar(entero_largo, uno);
         i++;
         j++;
-    }//esta al reves, obvio como no.
-    if(nuevo == NULL) return NULL;
+        if(!entero_restar(entero_largo, uno)){
+            entero_destruir(cero);
+            entero_destruir(diez);
+            entero_destruir(precision);
+            entero_destruir(uno);
+            entero_destruir(entero_largo);
+            free(nuevo);
+            free(largo);
+            return NULL;
+        }
+    }
+    entero_destruir(cero);
+    entero_destruir(diez);
+    entero_destruir(precision);
+    entero_destruir(uno);
+    entero_destruir(entero_largo);
+    free(largo);
     nuevo[i]= '\0';
-    
-    
-    //casos:
-    //    - n es mas chico que acc -> agrego 0s hasta que el largo de dev sea igual a acc, despues agrego el 0 adelante
-    //    - n es mas grande que acc -> agrego un punto en acc posiciones desde el final
-    //    - n es igual -> agrego un cero adelante
-    
-    // itero con entero_t. 
-    
-
     return nuevo;
-}// anda todo, no pregunten por que.
+}
 
 int main(int argc, char *argv[]){
     if (argc > 2) return 1;
