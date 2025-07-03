@@ -400,9 +400,11 @@ racional_t *racional_elevar(const racional_t *b,const racional_t *e){
     racional_t *res;
     if(b == NULL) return NULL;
     if(e == NULL) return NULL; // estas dos validaciones no se.
-    if(e->s) res = racional_crear(b->s,b->n,b->d);
-    else res = racional_crear(b->s,b->d,b->n);
+
+    if(e->s) res = racional_crear(b->s,b->d,b->n);
+    else res = racional_crear(b->s,b->n,b->d);
     if(res == NULL) return NULL;
+    if(entero_es_par(e->n)) res->s = false;
     if(!entero_elevar(res->n, e->n)){
         racional_destruir(res);
         return NULL;

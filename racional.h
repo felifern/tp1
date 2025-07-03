@@ -35,6 +35,7 @@ racional_t *racional_inverso_multiplicativo(const racional_t *q);
 racional_t *racional_pi ();
 racional_t *racional_e ();
 racional_t *racional_phi ();
+racional_t *racional_elevar(const racional_t *b,const racional_t *e);
 
 
 #endif

@@ -421,7 +421,7 @@ bool entero_imprimir(const entero_t *entero){
 bool entero_dividir(entero_t *dividendo, const entero_t *divisor, entero_t **resto) { // dividendo mayor que divisor
     if(divisor == NULL || dividendo == NULL) {
         return false;
-    }// PORFAVOR CHEQUEA QUE ESTO ESTE BIEN. habria que ponerse de acuerdo con las invariantes.
+    }
 
     /*printf("\n");
     printf("divisor:");
@@ -952,6 +952,48 @@ bool entero_elevar(entero_t *b, const entero_t *e){// creo que esta, tambien hay
     entero_destruir(bcpy);
 
     return true;
+}
+
+bool entero_es_par(const entero_t *e){
+    entero_t *dos = _crear(1);
+    if(dos == NULL) return false;
+    dos->d[0] = 2;
+    entero_t *ec = entero_clonar(e);
+    if(ec == NULL){
+        entero_destruir(dos);
+        return false;
+    }
+    entero_t *cero = entero_cero();
+    if(cero == NULL){
+        entero_destruir(dos);
+        entero_destruir(ec);
+        return false;
+    }
+    entero_t *uno = entero_uno();
+    if(uno == NULL){
+        entero_destruir(cero);
+        entero_destruir(dos);
+        entero_destruir(ec);
+        return false;
+    }
+    while(entero_comparar(cero, ec) != 0){
+        if(entero_comparar(uno, ec)){
+            entero_destruir(cero);
+            entero_destruir(uno);
+            entero_destruir(dos);
+            entero_destruir(ec);
+            return false;
+        }
+        if(!entero_dividir(ec, dos, NULL)){
+            entero_destruir(cero);
+            entero_destruir(uno);
+            entero_destruir(dos);
+            entero_destruir(ec);
+            return false;
+        }
+    }
+    return true;
+
 }
 
 

@@ -38,6 +38,7 @@ void destruir_racional(void *racional){
 //cosas importantes del trabajo
 
 operador_t *buscar(operador_t **operadores, size_t oplen , char * x) { // buscamos los operadores por "+", "-", ("identificadores"(?))
+    
     for (size_t i = 0; i < oplen; i++){
         if(strcmp(operadores[i]->operador, x) == 0){
             return operadores[i];
@@ -52,7 +53,10 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
     if (cola == NULL) return NULL;
     int c;
     c = getchar();
-    if (c== EOF) return NULL;
+    if (c== EOF) {
+        cola_destruir(cola,NULL);
+        return NULL;
+    }
     while(c != EOF && c != '\n') {
         
         if (c == ' '){
@@ -445,7 +449,7 @@ racional_t *phi_racional(const racional_t *a, const racional_t *b){
 }
 
 operador_t **tabla_crear(size_t *n){
-    operador_t **tabla = malloc(20 * sizeof(operador_t*));
+    operador_t **tabla = malloc(20 * sizeof(operador_t*));// si fueran mas de 20 agregar aca primero 
     if(tabla == NULL){
         return NULL;
     }
@@ -460,9 +464,9 @@ operador_t **tabla_crear(size_t *n){
     tabla[8] = operador_crear("pi", pi_racional, 0, 9, "pi", n);
     tabla[9] = operador_crear("e", e_racional, 0, 9, "eeeee", n);
     tabla[10] = operador_crear("phi", phi_racional, 0, 9, "fibo", n);
-    //tabla[4] = operador_crear("potencia", racional_elevar, 2, 2, "es una potencia"); //pero hay que hacerla jj
+    tabla[11] = operador_crear("^", racional_elevar, 2, 2, "es una potencia",n); //pero hay que hacerla jj
     return tabla;
-}// meti lo del numero en la funcion, no deberia haber problemas ahora
+}//asi esta bien
 
 racional_t *cadena_a_racional(char *numero){ //anda perfectoooooooo
     //voy a contar el num de digitos dsps de la coma (primero busco el punto y hasta q sea \0 cuento)
@@ -536,14 +540,14 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
     //creo que asi va mejor
 
     size_t acclen= strlen(acc);
-
-    for(size_t j = 0; j < acclen / 2 ; j++) {
-        char aux = acc[j];
-        acc[j] = acc[acclen - j - 1];
-        acc[acclen - j - 1] = aux;
+    char *bcd = malloc(acclen);
+    if (bcd == NULL) return NULL;
+    for(size_t i = 0; i < acclen ; i++){
+        bcd[i] = acc[acclen - i - 1] - '0';
     }
-    entero_t *precision = entero_desde_bcd(acc, strlen(acc));
+    entero_t *precision = entero_desde_bcd(bcd, acclen);
     entero_imprimir(precision);
+    free(bcd);
     if(precision == NULL) return NULL;
 
 
@@ -567,40 +571,59 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
         entero_destruir(diez);
         entero_destruir(precision);
     }
-
     if(!entero_dividir(diez, den, NULL)){
         entero_destruir(diez);
         entero_destruir(den);
         entero_destruir(precision);
         return NULL;
     }// ahora en num tengo el numero pero multiplicado diez * precision veces
-    
+    entero_imprimir(diez);// hasta aca estamos.
+   
+    char *aux = NULL;
     size_t n = 0;
-    char *dev = entero_a_bcd(diez, &n); // en n queda el largo del arreglo, hubiese estado bueno documentar eso xd
+    char *dev1 = entero_a_bcd(diez, &n); // en n queda el largo del arreglo, hubiese estado bueno documentar eso xd
+    char *dev = malloc(n + 1);
+    //printf("\n%lu", n);
+
+    for(size_t i = 0; i < n; i++){
+        dev [i] = dev1 [n - 1 - i] + '0';
+    }
+
+    dev[n] = '\0';
     // deberia tener un numero que sea n como entero_t ==> paso el n a char* y hago el entero (tp1??)
     // no hay otra forma???
     char *largo = malloc(log(n) + 2);
     size_t nlen = binario_a_bcd(largo, n);
     entero_t *entero_largo = entero_desde_bcd(largo, nlen);
+    //printf("\n");
+    //entero_imprimir(entero_largo);
+    //printf("\n");
     entero_t *cero = entero_cero();
     entero_t *uno = entero_uno();
     size_t i = 0;
     size_t j = 0;
     char *nuevo = NULL;
-    char *aux = NULL;
+    printf("\n largo es");
+    entero_imprimir(entero_largo);
+    printf("\n precision es");
+    entero_imprimir(precision);
+    bool in = false;
+    entero_restar(entero_largo, uno);
     while(entero_comparar(entero_largo,cero) != 0){//aca me fijo que sea distinto de 0??? deberia abarcar todos los casos
-        if(entero_comparar(entero_largo,precision) == 0){
-            //poner el punto
+        if(entero_comparar(entero_largo,precision) ==  0 && in == false){
             aux = realloc(nuevo, i + 2);
             if(aux == NULL){
                 //liberar memoria
                 return NULL;
             }
             nuevo = aux;
+            //nuevo [i] = dev [j];
+            //i++;
+            //j++;
             nuevo [i]=  '.';
+            in = true;
+            i++;
         }
-        entero_restar(entero_largo, uno);
-        
         
         aux = realloc(nuevo, i + 2);
         if(aux == NULL){
@@ -608,8 +631,10 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
             return NULL;
         }
         nuevo = aux;
-        nuevo[i] = dev[n - j];
+        nuevo[i] = dev[j];
         entero_restar(entero_largo, uno);
+        i++;
+        j++;
     }//esta al reves, obvio como no.
     if(nuevo == NULL) return NULL;
     nuevo[i]= '\0';
@@ -624,11 +649,11 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
     
 
     return nuevo;
-}
-/*
+}// anda todo, no pregunten por que.
+
 int main(int argc, char *argv[]){
     if (argc > 2) return 1;
-    size_t oplen;
+    size_t oplen = 0;
     if (argc == 1){
         printf("escribir ./calculadora ayuda");
         return 0;
@@ -661,7 +686,7 @@ int main(int argc, char *argv[]){
     while(1){
         cola_t *input_infija = leer_linea();
         if (input_infija == NULL){
-            //hay que hacer un tabla_destruir? xd
+            //hay que hacer un tabla_destruir?
             return 1;
         }
         cola_t *input_postfija = pasar_a_postfija(input_infija, operadores, oplen);
@@ -703,7 +728,7 @@ int main(int argc, char *argv[]){
                 //tabla_destruir
                 return 1;
             }
-            printf("%s\n",rta);
+            printf("la respuesta es: %s\n",rta);
             free(rta);
         }
     }
@@ -711,7 +736,9 @@ int main(int argc, char *argv[]){
     //tabla_destruir
     return 0;
 }
-*/
+
+
+/*
 struct racional {
     bool s;
     entero_t *n, *d;
@@ -754,3 +781,4 @@ int main(){
     cola_destruir(prueba, destruir_elemento);
     return 0;
 }
+*/
