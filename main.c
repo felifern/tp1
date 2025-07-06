@@ -557,7 +557,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
         return NULL;
     }
     entero_t *uno = entero_uno();
-    int es_uno = entero_comparar(racional_denominador(numero), uno);
+    //int es_uno = entero_comparar(racional_denominador(numero), uno);
     char dz[] = {0,1};
 
     size_t acclen= strlen(acc);
@@ -568,11 +568,11 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
     }
     entero_t *precision = entero_desde_bcd(bcd, acclen);
     entero_imprimir(precision);
-    if(es_uno != 0) {
+    /*if(es_uno != 0) {
         if(!entero_restar(precision, uno)){
 
         }
-    }
+    }*/
     printf("\n");
     free(bcd);
     if(precision == NULL){
@@ -642,11 +642,11 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
     printf("\n largo es: ");
     entero_imprimir(entero_largo);// entero largo seria la cantidad de digitos que tiene el numero que voy a devolver
     printf("\n precision es: ");
-    if (es_uno != 0) {
+    /*if (es_uno != 0) {
         if(!entero_sumar(precision, uno)){
 
         }
-    }
+    }*/
     entero_imprimir(precision);// precision seria acc???
     printf("\n");
     printf("dev es = %s", dev);
