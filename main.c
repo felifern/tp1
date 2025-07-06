@@ -63,7 +63,10 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             c = getchar();
             continue;
         }
-        if (isdigit(c) || c == '.'){
+        if (c == '.'){
+            return NULL;
+        }
+        if (isdigit(c)){
             int j = 1;
             char *num = malloc(sizeof(char) * 2);
             if(num == NULL){
@@ -88,7 +91,12 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
                 c = getchar();
             }
             num[j] = '\0';
-
+            if(n_puntos == 1 &&  num[j-1] == '.'){
+                return NULL;
+            }
+            if(n_puntos == 2){
+                return NULL;
+            }
             elemento_t *elemento = malloc(sizeof(elemento_t));
             if (elemento == NULL){
                 free(num);
@@ -471,7 +479,7 @@ operador_t **tabla_crear(size_t *n){
 racional_t *cadena_a_racional(char *numero){ //anda perfectoooooooo
     //voy a contar el num de digitos dsps de la coma (primero busco el punto y hasta q sea \0 cuento)
     //el racional es: numerador = numero pero saco el punto, denominador = 10^(cant nums dsps de punto)
-    
+    if (numero == NULL) return NULL;
     size_t largo = strlen(numero) ;
     char *num = malloc (largo);
     if (num == NULL) return NULL;
@@ -521,6 +529,8 @@ racional_t *cadena_a_racional(char *numero){ //anda perfectoooooooo
     entero_t *denominador = entero_desde_bcd(den, (n_num - punto)); //creo que estos tamanios de char *den son los que estan bien.
     free (den);
     racional_t *racional = racional_crear(false, numerador, denominador);
+    entero_destruir(denominador);
+    entero_destruir(numerador);
     return racional;
 }
 
@@ -536,6 +546,16 @@ size_t binario_a_bcd(char bcd[], unsigned long entero){
 }
 
 char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo elevo precision
+    
+    if (numero == NULL){
+        return NULL;
+    }
+    entero_t *cero = entero_cero();
+    if(entero_comparar(racional_numerador(numero), cero) == 0){
+        printf("0");
+        entero_destruir(cero);
+        return NULL;
+    }
     entero_t *uno = entero_uno();
     int es_uno = entero_comparar(racional_denominador(numero), uno);
     char dz[] = {0,1};
@@ -557,6 +577,8 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
     free(bcd);
     if(precision == NULL){
         entero_destruir(uno);
+        entero_destruir(cero);
+
         return NULL;
     }
 
@@ -564,15 +586,18 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
     entero_t *diez = entero_desde_bcd(dz,2);
     if(diez == NULL){
         entero_destruir(precision);
+        entero_destruir(cero);
         entero_destruir(uno);
         return NULL;
     }
     if(!entero_elevar(diez, precision)){// aca no es multiplicar, hay que elevar a precision. sigo cuando tenga esta de elevar.
+        entero_destruir(cero);
         entero_destruir(precision);
         entero_destruir(uno);
         return NULL;
     }
     if(!entero_multiplicar(diez, racional_numerador(numero))){
+        entero_destruir(cero);
         entero_destruir(precision);
         entero_destruir(diez);
         entero_destruir(uno);
@@ -581,6 +606,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
     if(!entero_dividir(diez, racional_denominador(numero), NULL)){
         entero_destruir(diez);
         entero_destruir(precision);
+        entero_destruir(cero);
         entero_destruir(uno);
         return NULL;
     }
@@ -604,11 +630,11 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
     entero_t *entero_largo = entero_desde_bcd(largo, nlen);
     if(entero_largo == NULL){
         entero_destruir(uno);
+        entero_destruir(cero);
         entero_destruir(diez);
         entero_destruir(precision);
         free(largo);
     }
-    entero_t *cero = entero_cero();
     
     size_t i = 0;
     size_t j = 0;
@@ -798,16 +824,19 @@ int main(int argc, char *argv[]){
         cola_t *input_infija = leer_linea();
         if (input_infija == NULL){
             //hay que hacer un tabla_destruir?
+            printf("error fatal. batata");
             return 1;
         }
         cola_t *input_postfija = pasar_a_postfija(input_infija, operadores, oplen);
         cola_destruir(input_infija, NULL);
         if (input_postfija == NULL){
             //tabla_destruir
+            printf("error fatal. espinaca");
             return 1;
         }
         racional_t *resultado = operar_postfija(input_postfija, operadores, oplen);
         if (resultado == NULL){
+            printf("error fatal. tomate");
             cola_destruir(input_postfija, destruir_elemento);
             //tabla_destruir
             return 1;
@@ -817,6 +846,7 @@ int main(int argc, char *argv[]){
             char *rta = racional_a_cadena(resultado, "8");
             racional_destruir(resultado);
             if (rta == NULL){
+                printf("error fatal. espinaca");
                 //tabla_destruir
                 return 1;
             }
@@ -827,6 +857,8 @@ int main(int argc, char *argv[]){
             if (!racional_imprimir(resultado)){
                 racional_destruir(resultado);
                 //tabla_destruir
+                printf("error fatal. espinaca");
+
                 return 1;
             }
             printf("\n");
@@ -838,6 +870,8 @@ int main(int argc, char *argv[]){
             if (rta == NULL){
                 //tabla_destruir
                 return 1;
+                printf("error fatal. espinaca");
+
             }
             printf("la respuesta es: %s\n",rta);
             free(rta);
