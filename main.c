@@ -792,7 +792,7 @@ int main(int argc, char *argv[]){
     if (argc > 2) return 1;
     size_t oplen = 0;
     if (argc == 1){
-        printf("escribir ./calculadora ayuda");
+        printf("escribir %s ayuda",argv[0]);
         return 0;
     }
     operador_t **operadores = tabla_crear(&oplen);
