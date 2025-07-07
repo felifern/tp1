@@ -557,7 +557,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
         return NULL;
     }
     entero_t *uno = entero_uno();
-    //int es_uno = entero_comparar(racional_denominador(numero), uno);
+    int es_uno = entero_comparar(racional_denominador(numero), uno);
     char dz[] = {0,1};
 
     size_t acclen= strlen(acc);
@@ -567,13 +567,13 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
         bcd[i] = acc[acclen - i - 1] - '0';
     }
     entero_t *precision = entero_desde_bcd(bcd, acclen);
-    entero_imprimir(precision);
-    /*if(es_uno != 0) {
+    //entero_imprimir(precision);
+    if(es_uno != 0) {
         if(!entero_restar(precision, uno)){
 
         }
-    }*/
-    printf("\n");
+    }
+    //printf("\n");
     free(bcd);
     if(precision == NULL){
         entero_destruir(uno);
@@ -616,7 +616,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
     size_t n = 0;
     char *dev1 = entero_a_bcd(diez, &n); // en n queda el largo del arreglo, hubiese estado bueno documentar eso xd
     char *dev = malloc(n + 1);
-    printf("\nn dev es:%lu", n);
+    //printf("\nn dev es:%lu", n);
 
     for(size_t i = 0; i < n; i++){
         dev [i] = dev1 [n - 1 - i] + '0';
@@ -642,19 +642,20 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
     printf("\n largo es: ");
     entero_imprimir(entero_largo);// entero largo seria la cantidad de digitos que tiene el numero que voy a devolver
     printf("\n precision es: ");
-    /*if (es_uno != 0) {
+    if (es_uno != 0) {
         if(!entero_sumar(precision, uno)){
 
         }
-    }*/
+    }
     entero_imprimir(precision);// precision seria acc???
     printf("\n");
     printf("dev es = %s", dev);
     bool in = false;
     while(entero_comparar(entero_largo,cero) != 0){//aca me fijo que sea distinto de 0??? deberia abarcar todos los casos
         
-        if(in == false && entero_comparar(entero_largo,precision) < 0){
-            aux = realloc(nuevo, i + 2);
+        if(in == false && /*entero_comparar(entero_largo,precision) < 0 &&*/ entero_comparar(racional_denominador(numero),racional_numerador(numero) ) > 0){
+            
+            aux = realloc(nuevo, i + 3);
             if(aux == NULL){
                 entero_destruir(uno);
                 entero_destruir(diez);
@@ -669,9 +670,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
             nuevo [0] =  '0';
             nuevo [1] = '.';
             i += 2;
-            if(!entero_restar(precision, uno)){
-                //liberar memoria y hacer algo al respecto
-            }
+            
             while (entero_comparar(entero_largo,precision) != 0){
                 aux = realloc(nuevo, i + 2);
                 if(aux == NULL){
@@ -699,11 +698,11 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
                     return NULL;
                 }   
             }
-            if(!entero_sumar(precision,uno)){
-                //aca lo mismo
+            if(!entero_restar(precision, uno)){
+                //liberar memoria y hacer algo al respecto
             }
             while(entero_comparar(precision,cero) != 0){
-                aux = realloc(nuevo, i + 2);
+                aux = realloc(nuevo, i + 4);
                 if(aux == NULL){
                     entero_destruir(cero);
                     entero_destruir(diez);
@@ -715,9 +714,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
                     return NULL;
                 }
                 nuevo = aux;
-                nuevo[i] = dev[j];
-                i++;
-                j++;
+                nuevo[i++] = dev[j++];
                 if(!entero_restar(precision, uno)){
                     entero_destruir(cero);
                     entero_destruir(diez);
@@ -730,12 +727,26 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
                     return NULL;
                 }
             }
+            aux = realloc(nuevo, i + 3);
+            if(aux == NULL){
+                entero_destruir(cero);
+                entero_destruir(diez);
+                entero_destruir(precision);
+                entero_destruir(uno);
+                entero_destruir(entero_largo);
+                free(largo);
+            
+                return NULL;
+            }
+            nuevo = aux;
+            nuevo[i++] = dev[j++];
+            nuevo[i++] = dev[j++];
             break;
         }
 
 
         if(entero_comparar(entero_largo,precision) ==  0){
-            aux = realloc(nuevo, i + 2);
+            aux = realloc(nuevo, i + 3);
             if(aux == NULL){
                 entero_destruir(uno);
                 entero_destruir(diez);
@@ -747,8 +758,8 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
                 return NULL;
             }
             nuevo = aux;
-            nuevo [i]=  '.';
-            i++;
+            racional_imprimir(numero);
+            nuevo [i++]=  '.';
             in = true;
         }
         
