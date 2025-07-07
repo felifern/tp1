@@ -514,19 +514,19 @@ racional_t *cadena_a_racional(char *numero){ //anda perfectoooooooo
     }
     //ahora si hay un punto:
     
-    char *den = malloc(n_num - punto);
+    char *den = malloc(n_num - punto + 1);
 
     if (den == NULL){
         entero_destruir(numerador);
         return NULL;
     }
 
-    den[n_num - punto - 1] = 1;
-    for(size_t i = 0; i < n_num - punto - 1 ; i++){
-        den[n_num - punto - 2 - i] = 0;
+    den[n_num - punto] = 1;//ARREGLAOOO
+    for(size_t i = 0; i < n_num - punto ; i++){
+        den[n_num - punto - 1 - i] = 0;
     }
 
-    entero_t *denominador = entero_desde_bcd(den, (n_num - punto)); //creo que estos tamanios de char *den son los que estan bien.
+    entero_t *denominador = entero_desde_bcd(den, (n_num - punto + 1)); //creo que estos tamanios de char *den son los que estan bien.
     free (den);
     racional_t *racional = racional_crear(false, numerador, denominador);
     entero_destruir(denominador);
@@ -557,7 +557,6 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
         return NULL;
     }
     entero_t *uno = entero_uno();
-    int es_uno = entero_comparar(racional_denominador(numero), uno);
     char dz[] = {0,1};
 
     size_t acclen= strlen(acc);
@@ -568,12 +567,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
     }
     entero_t *precision = entero_desde_bcd(bcd, acclen);
     //entero_imprimir(precision);
-    if(es_uno != 0) {
-        if(!entero_restar(precision, uno)){
 
-        }
-    }
-    //printf("\n");
     free(bcd);
     if(precision == NULL){
         entero_destruir(uno);
@@ -610,7 +604,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
         entero_destruir(uno);
         return NULL;
     }
-    entero_imprimir(diez);// hasta aca estamos.
+    //entero_imprimir(diez);// hasta aca estamos.
    
     char *aux = NULL;
     size_t n = 0;
@@ -639,17 +633,12 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
     size_t i = 0;
     size_t j = 0;
     char *nuevo = NULL;
-    printf("\n largo es: ");
-    entero_imprimir(entero_largo);// entero largo seria la cantidad de digitos que tiene el numero que voy a devolver
-    printf("\n precision es: ");
-    if (es_uno != 0) {
-        if(!entero_sumar(precision, uno)){
-
-        }
-    }
-    entero_imprimir(precision);// precision seria acc???
-    printf("\n");
-    printf("dev es = %s", dev);
+    //printf("\n largo es: ");
+    //entero_imprimir(entero_largo);// entero largo seria la cantidad de digitos que tiene el numero que voy a devolver
+    //printf("\n precision es: ");
+    //entero_imprimir(precision);// precision seria acc???
+    //printf("\n");
+    //printf("dev es = %s", dev);
     bool in = false;
     while(entero_comparar(entero_largo,cero) != 0){//aca me fijo que sea distinto de 0??? deberia abarcar todos los casos
         
@@ -758,7 +747,6 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
                 return NULL;
             }
             nuevo = aux;
-            racional_imprimir(numero);
             nuevo [i++]=  '.';
             in = true;
         }
