@@ -48,13 +48,13 @@ operador_t *buscar(operador_t **operadores, size_t oplen , char * x) { // buscam
 } // si devuelve null no existe el operador
 
 cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123","+","fact","(","5","*","3",")"}
-
+    elemento_t *elemento = NULL;
     cola_t *cola = cola_crear();
     if (cola == NULL) return NULL;
     int c;
     c = getchar();
     if (c== EOF) {
-        cola_destruir(cola,NULL);
+        cola_destruir(cola, destruir_elemento);
         return NULL;
     }
     while(c != EOF && c != '\n') {
@@ -92,12 +92,16 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             }
             num[j] = '\0';
             if(n_puntos == 1 &&  num[j-1] == '.'){
+                free(num);
+                cola_destruir(cola, destruir_elemento);
                 return NULL;
             }
             if(n_puntos == 2){
+                free(num);
+                cola_destruir(cola, destruir_elemento);
                 return NULL;
             }
-            elemento_t *elemento = malloc(sizeof(elemento_t));
+            elemento = malloc(sizeof(elemento_t));
             if (elemento == NULL){
                 free(num);
                 cola_destruir(cola, destruir_elemento);
@@ -137,7 +141,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             }
             fun[j] = '\0';
 
-            elemento_t *elemento = malloc(sizeof(elemento_t));
+            elemento = malloc(sizeof(elemento_t));
             if (elemento == NULL){
                 free(fun);
                 cola_destruir(cola, destruir_elemento);
@@ -157,14 +161,14 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
         else if (c == ')' || c == '('){
             char *operador = malloc(sizeof(char) * 2); 
             if(operador == NULL){
-                cola_destruir(cola, NULL);
+                cola_destruir(cola, destruir_elemento);
                 return NULL;
             }
             operador[0] = c;
             operador[1] = '\0';
             c =getchar();
 
-            elemento_t *elemento = malloc(sizeof(elemento_t));
+            elemento = malloc(sizeof(elemento_t));
             if (elemento == NULL){
                 free(operador);
                 cola_destruir(cola, destruir_elemento);
@@ -190,7 +194,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             operador[1] = '\0';
             c =getchar();
 
-            elemento_t *elemento = malloc(sizeof(elemento_t));
+            elemento = malloc(sizeof(elemento_t));
             if (elemento == NULL){
                 free(operador);
                 cola_destruir(cola, destruir_elemento);
@@ -204,7 +208,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
                 cola_destruir(cola, destruir_elemento);
                 return NULL;
             }
-
+            
             continue;
         }
         else{
@@ -222,72 +226,96 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
 
     pila_t *auxiliar = pila_crear();
     if(auxiliar == NULL){
-        //cola_destruir(salida,elemento_destruir);//cola_destruir(salida,NULL);
+        cola_destruir(salida,NULL);
         return NULL;
     }
     elemento_t *tope;
     elemento_t *element;
     
-    while ((element = cola_desencolar(infija)) != NULL){//ok
-        if(element->tipo == NUMERO){//ok
-            cola_encolar(salida, element);
+    while ((element = cola_desencolar(infija)) != NULL){
+        if(element->tipo == NUMERO){
+            if(!cola_encolar(salida, element)){
+                cola_destruir(salida,destruir_elemento);
+                pila_destruir(auxiliar,destruir_elemento);
+            }
             continue;
         }
         if(element->tipo == FUNCION || (element->tipo == PARENTESIS && strcmp(element->elemento, "(") == 0)){//ok
-            pila_apilar(auxiliar, element);
+            if(!pila_apilar(auxiliar, element)){
+                cola_destruir(salida,destruir_elemento);
+                pila_destruir(auxiliar,destruir_elemento);
+            }
             continue;
         }
         if (element->tipo == OPERADOR){//element seguro distinto de NULL
             tope = pila_ver_tope(auxiliar);
             if (tope == NULL || strcmp(tope->elemento, "(") == 0){//tope tambien distinto de NULL
-                pila_apilar(auxiliar, element);
+                if(!pila_apilar(auxiliar, element)){
+                    cola_destruir(salida,destruir_elemento);
+                    pila_destruir(auxiliar,destruir_elemento);
+                }
                 continue;
             }
             
             operador_t *tope_aux = buscar(operadores, oplen, tope->elemento);
             if(tope_aux == NULL){
-                //liberar memoria
+                cola_destruir(salida,destruir_elemento);
+                pila_destruir(auxiliar,destruir_elemento);
                 //printf("el operador %s no existe", tope->elemento);
                 return NULL;
             }
             
             operador_t *element_aux = buscar(operadores, oplen, element->elemento);
             if(tope_aux == NULL){
-                //liberar memoria
+                cola_destruir(salida,destruir_elemento);
+                pila_destruir(auxiliar,destruir_elemento);
                 //printf("el operador %s no existe", (element->elemento));
                 return NULL;
             }
             
             while((tope = pila_ver_tope(auxiliar))!= NULL && strcmp(tope->elemento, "(") != 0 && tope_aux -> prioridad >= element_aux -> prioridad){
                 tope = pila_desapilar(auxiliar);
-                cola_encolar(salida ,tope);
+                if(!cola_encolar(salida ,tope)){
+                    cola_destruir(salida,destruir_elemento);
+                    pila_destruir(auxiliar,destruir_elemento);
+                }
                 tope_aux = buscar(operadores, oplen, tope->elemento);
                 if(tope_aux == NULL){
-                    //liberar memoria
-                    //printf("el operador %s no existe", (tope->elemento)); comente los printf de los errores porque me tiran erro (no se porque)
+                    cola_destruir(salida,destruir_elemento);
+                    pila_destruir(auxiliar,destruir_elemento);
                     return NULL;
                 }
             }
-            pila_apilar(auxiliar, element);
+            if(!pila_apilar(auxiliar, element)){
+                cola_destruir(salida,destruir_elemento);
+                pila_destruir(auxiliar,destruir_elemento);
+            }
             continue;
         }
         if(element->tipo == PARENTESIS && strcmp(element->elemento, ")") == 0){ 
             tope = pila_desapilar(auxiliar);
             if(tope == NULL){
-                printf("escribiste mal flaco lo primero");
+                printf("escribiste mal flaco lo primero");// aca que onda? deberia frenar todo? capaz si
                 continue;
             }
             while(tope != NULL && strcmp(tope->elemento, "(") != 0){// aca falta algo mepa, si despues de cerrar hay una funcion tambien se encola
-                cola_encolar(salida ,tope);
+                if(!cola_encolar(salida ,tope)){
+                    cola_destruir(salida,destruir_elemento);
+                    pila_destruir(auxiliar,destruir_elemento);
+                }
                 tope = pila_desapilar(auxiliar);
             }
             if(tope == NULL){//o es NULL o es "("
-                printf("escribiste mal flaco");
-                // liberar memoria
+                printf("escribiste mal flaco");// estos comentarios se podrian mejorar
+                cola_destruir(salida,destruir_elemento);
+                pila_destruir(auxiliar,destruir_elemento);
                 return NULL;
             }
             if((tope = pila_ver_tope(auxiliar)) != NULL  && tope->tipo == FUNCION){
-                cola_encolar(salida, pila_desapilar(auxiliar));
+                if(!cola_encolar(salida, pila_desapilar(auxiliar))){
+                    cola_destruir(salida,destruir_elemento);
+                    pila_destruir(auxiliar,destruir_elemento);
+                }
                 continue;
             }
             continue;    
@@ -298,14 +326,17 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
     while((tope = pila_desapilar(auxiliar))!= NULL){
         if(strcmp(tope->elemento,"(")== 0){
             printf("error, no se cerro nunca este parentesis");
-            //liberar memoria
+            cola_destruir(salida,destruir_elemento);
+            pila_destruir(auxiliar,destruir_elemento);
             return NULL;
         }
-        cola_encolar(salida ,tope);
+        if(!cola_encolar(salida ,tope)){
+            cola_destruir(salida,destruir_elemento);
+            pila_destruir(auxiliar,destruir_elemento);
+        }
     }
-    //aca capaz hay que destruir un par de cosillas
-    // no lo se la verdad.
-    
+    pila_destruir(auxiliar,destruir_elemento);
+
     return salida;
 
 }
@@ -384,6 +415,7 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
             }
             pila_apilar(pila, resultado);
         }
+        elemento_destruir(simbolo);// GOOOOOOOOOOOOOOOOOOOOOOOOOOOOOD
     }
     //deberia quedar un solo elemento pero chequeamos por si las moscas ahre
     racional_t * resultado_final = pila_desapilar(pila);
@@ -424,7 +456,7 @@ int prioridad, char *descripcion, size_t *n){
     nuevo->funcion = funcion;
     nuevo->aridad = aridad;
     nuevo->prioridad = prioridad;
-    nuevo->descripcion = descripcion;
+    nuevo->descripcion = desc;
     *n= *n + 1;
     return nuevo;
 }
@@ -476,7 +508,7 @@ operador_t **tabla_crear(size_t *n){
     return tabla;
 }//asi esta bien
 
-racional_t *cadena_a_racional(char *numero){ //anda perfectoooooooo
+racional_t *cadena_a_racional(char *numero){ //LISTO 100% anda perfectoooooooo
     //voy a contar el num de digitos dsps de la coma (primero busco el punto y hasta q sea \0 cuento)
     //el racional es: numerador = numero pero saco el punto, denominador = 10^(cant nums dsps de punto)
     if (numero == NULL) return NULL;
@@ -545,11 +577,12 @@ size_t binario_a_bcd(char bcd[], unsigned long entero){
     return i;
 }
 
-char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo elevo precision
+char *racional_a_cadena(const racional_t *numero, char* acc){//LISTO 100%  (a priori)agarro el 10 lo elevo precision
     
     if (numero == NULL){
         return NULL;
     }
+
     entero_t *cero = entero_cero();
     if(entero_comparar(racional_numerador(numero), cero) == 0){
         printf("0");
@@ -627,7 +660,10 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
         entero_destruir(cero);
         entero_destruir(diez);
         entero_destruir(precision);
+        free(dev);
         free(largo);
+
+        return NULL;//??
     }
     
     size_t i = 0;
@@ -669,6 +705,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
                 entero_destruir(cero);
                 entero_destruir(entero_largo);
                 free(largo);
+                free(dev);
 
                 return NULL;
             }
@@ -683,12 +720,22 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
                     entero_destruir(entero_largo);
                     free(nuevo);
                     free(largo);
+                    free(dev);
 
                     return NULL;
                 }   
             }
             if(!entero_restar(precision, uno)){
-                //liberar memoria y hacer algo al respecto
+                entero_destruir(cero);
+                entero_destruir(diez);
+                entero_destruir(precision);
+                entero_destruir(uno);
+                entero_destruir(entero_largo);
+                free(nuevo);
+                free(largo);
+                free(dev);
+                
+                return NULL;
             }
             while(entero_comparar(precision,cero) != 0){
                 aux = realloc(nuevo, i + 4);
@@ -699,7 +746,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
                     entero_destruir(uno);
                     entero_destruir(entero_largo);
                     free(largo);
-                
+                    free(dev);
                     return NULL;
                 }
                 nuevo = aux;
@@ -712,7 +759,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
                     entero_destruir(entero_largo);
                     free(nuevo);
                     free(largo);
-                
+                    free(dev);
                     return NULL;
                 }
             }
@@ -724,7 +771,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
                 entero_destruir(uno);
                 entero_destruir(entero_largo);
                 free(largo);
-            
+                free(dev);
                 return NULL;
             }
             nuevo = aux;
@@ -743,7 +790,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
                 entero_destruir(cero);
                 entero_destruir(entero_largo);
                 free(largo);
-
+                free(dev);
                 return NULL;
             }
             nuevo = aux;
@@ -759,7 +806,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
             entero_destruir(uno);
             entero_destruir(entero_largo);
             free(largo);
-
+            free(dev);
             return NULL;
         }
         nuevo = aux;
@@ -774,6 +821,7 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
             entero_destruir(entero_largo);
             free(nuevo);
             free(largo);
+            free(dev);
             return NULL;
         }
     }
@@ -782,9 +830,25 @@ char *racional_a_cadena(const racional_t *numero, char* acc){//agarro el 10 lo e
     entero_destruir(precision);
     entero_destruir(uno);
     entero_destruir(entero_largo);
+    free(dev);
     free(largo);
     nuevo[i]= '\0';
     return nuevo;
+}
+
+void operador_destruir(operador_t *op){
+    free(op->descripcion);
+    free(op->operador);
+    free(op);
+    return;
+}
+
+void tabla_destruir(operador_t **tabla, size_t tablen){
+    for(size_t i = 0; i<tablen ; i++){
+        operador_destruir(tabla[i]);
+    }
+    free(tabla);
+    return;
 }
 
 int main(int argc, char *argv[]){
@@ -822,22 +886,23 @@ int main(int argc, char *argv[]){
     while(1){
         cola_t *input_infija = leer_linea();
         if (input_infija == NULL){
-            //hay que hacer un tabla_destruir?
-            printf("error fatal. batata");
+            tabla_destruir(operadores, oplen);
+            //printf("error fatal. batata");
             return 1;
         }
         cola_t *input_postfija = pasar_a_postfija(input_infija, operadores, oplen);
-        cola_destruir(input_infija, NULL);
+        cola_destruir(input_infija, destruir_elemento);
         if (input_postfija == NULL){
-            //tabla_destruir
-            printf("error fatal. espinaca");
+            tabla_destruir(operadores, oplen);
+            //printf("error fatal. espinaca");
             return 1;
         }
         racional_t *resultado = operar_postfija(input_postfija, operadores, oplen);
+        cola_destruir(input_postfija,destruir_elemento);
         if (resultado == NULL){
-            printf("error fatal. tomate");
+            //printf("error fatal. tomate");
             cola_destruir(input_postfija, destruir_elemento);
-            //tabla_destruir
+            tabla_destruir(operadores, oplen);
             return 1;
         }
         if (argc == 1){
@@ -845,8 +910,8 @@ int main(int argc, char *argv[]){
             char *rta = racional_a_cadena(resultado, "8");
             racional_destruir(resultado);
             if (rta == NULL){
-                printf("error fatal. espinaca");
-                //tabla_destruir
+                //printf("error fatal. espinaca");
+                tabla_destruir(operadores, oplen);
                 return 1;
             }
             printf("%s\n",rta);
@@ -855,8 +920,8 @@ int main(int argc, char *argv[]){
         else if(strcmp(argv[1],"racional") == 0){
             if (!racional_imprimir(resultado)){
                 racional_destruir(resultado);
-                //tabla_destruir
-                printf("error fatal. espinaca");
+                tabla_destruir(operadores, oplen);
+                //printf("error fatal. espinaca");
 
                 return 1;
             }
@@ -867,17 +932,16 @@ int main(int argc, char *argv[]){
             char *rta = racional_a_cadena(resultado, argv[1]);
             racional_destruir(resultado);
             if (rta == NULL){
-                //tabla_destruir
+                tabla_destruir(operadores, oplen);
                 return 1;
-                printf("error fatal. espinaca");
+                //printf("error fatal. espinaca");
 
             }
             printf("la respuesta es: %s\n",rta);
             free(rta);
         }
     }
-
-    //tabla_destruir
+    tabla_destruir(operadores, oplen);
     return 0;
 }
 
