@@ -244,6 +244,17 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
             continue;
         }
         if(element->tipo == FUNCION || (element->tipo == PARENTESIS && strcmp(element->elemento, "(") == 0)){//ok
+            //tope = pila_ver_tope(auxiliar);
+            operador_t *tope_aux = buscar(operadores, oplen, element->elemento);
+            if(tope_aux == NULL){
+                cola_destruir(salida,destruir_elemento);
+                pila_destruir(auxiliar,destruir_elemento);
+                printf("Operador %s inválido!\n", element->elemento);
+                elemento_destruir(element);
+
+                return NULL;
+            }
+
             if(!pila_apilar(auxiliar, element)){
                 cola_destruir(salida,destruir_elemento);
                 pila_destruir(auxiliar,destruir_elemento);
@@ -261,7 +272,7 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
             }
             
             operador_t *tope_aux = buscar(operadores, oplen, tope->elemento);
-            if(tope_aux == NULL){
+            if(tope_aux == NULL){// no se bien porque esta esto aca, pero capaz se puede borrar
                 cola_destruir(salida,destruir_elemento);
                 pila_destruir(auxiliar,destruir_elemento);
                 printf("Operador %s inválido!", tope->elemento);
@@ -269,7 +280,7 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
             }
             
             operador_t *element_aux = buscar(operadores, oplen, element->elemento);
-            if(tope_aux == NULL){
+            if(tope_aux == NULL){// lo mismo que arriba
                 cola_destruir(salida,destruir_elemento);
                 pila_destruir(auxiliar,destruir_elemento);
                 printf("Operador %s inválido", tope->elemento);
@@ -299,6 +310,7 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
             tope = pila_desapilar(auxiliar);
             if(tope == NULL){
                 printf("escribiste mal flaco lo primero");// aca que onda? deberia frenar todo? capaz si
+                return NULL; //puse este return NULL
                 continue;
             }
             while(tope != NULL && strcmp(tope->elemento, "(") != 0){// aca falta algo mepa, si despues de cerrar hay una funcion tambien se encola
@@ -873,20 +885,21 @@ int main(int argc, char *argv[]){
         cola_t *input_infija = leer_linea();
         if (input_infija == NULL){
             tabla_destruir(operadores, oplen);
-            //printf("error fatal. batata");
+            printf("error fatal.");
             return 1;
         }
         cola_t *input_postfija = pasar_a_postfija(input_infija, operadores, oplen);
         cola_destruir(input_infija, destruir_elemento);
         if (input_postfija == NULL){
+            
             tabla_destruir(operadores, oplen);
-            //printf("error fatal. espinaca");
+            printf("error fatal");
             return 1;
         }
         racional_t *resultado = operar_postfija(input_postfija, operadores, oplen);
         cola_destruir(input_postfija,destruir_elemento);
         if (resultado == NULL){
-            //printf("error fatal. tomate");
+            printf("error fatal.");
             cola_destruir(input_postfija, destruir_elemento);
             tabla_destruir(operadores, oplen);
             return 1;
@@ -896,7 +909,7 @@ int main(int argc, char *argv[]){
             char *rta = racional_a_cadena(resultado, "8");
             racional_destruir(resultado);
             if (rta == NULL){
-                //printf("error fatal. espinaca");
+                printf("error fatal.");
                 tabla_destruir(operadores, oplen);
                 return 1;
             }
@@ -907,7 +920,7 @@ int main(int argc, char *argv[]){
             if (!racional_imprimir(resultado)){
                 racional_destruir(resultado);
                 tabla_destruir(operadores, oplen);
-                //printf("error fatal. espinaca");
+                printf("error fatal.");
 
                 return 1;
             }
@@ -920,7 +933,7 @@ int main(int argc, char *argv[]){
             if (rta == NULL){
                 tabla_destruir(operadores, oplen);
                 return 1;
-                //printf("error fatal. espinaca");
+                printf("error fatal.");
 
             }
             printf("la respuesta es: %s\n",rta);

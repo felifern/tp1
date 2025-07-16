@@ -590,7 +590,6 @@ bool entero_multiplicar(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NAD
         _redimensionar(a, 1);
         a->d[0]= 0;
         entero_destruir(bc);
-
         return true;
     }
 

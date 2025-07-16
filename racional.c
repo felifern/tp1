@@ -426,7 +426,11 @@ racional_t *racional_pi (){
         entero_destruir(num);
         return NULL;
     }
-    return racional_crear(0,num,den); 
+    racional_t *dev = racional_crear(0,num,den);
+    entero_destruir(den);
+    entero_destruir(num);
+
+    return dev; 
 }
 
 racional_t *racional_e (){
@@ -439,7 +443,10 @@ racional_t *racional_e (){
         entero_destruir(num);
         return NULL;
     }
-    return racional_crear(0,num,den); 
+    racional_t *dev = racional_crear(0,num,den);
+    entero_destruir(den);
+    entero_destruir(num);
+    return dev;
 }
 
 racional_t *racional_phi (){
@@ -452,6 +459,10 @@ racional_t *racional_phi (){
         entero_destruir(num);
         return NULL;
     }
-    return racional_crear(0,num,den); 
+    racional_t *dev = racional_crear(0,num,den);
+    entero_destruir(den);
+    entero_destruir(num);
+
+    return dev; 
 }
 
