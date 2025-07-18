@@ -245,10 +245,10 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
             }
             continue;
         }
-        if(element->tipo == FUNCION /*|| (element->tipo == PARENTESIS && strcmp(element->elemento, "(") == 0)*/){//ok
-            //tope = pila_ver_tope(auxiliar);
+        if(element->tipo == FUNCION || (element->tipo == PARENTESIS && strcmp(element->elemento, "(") == 0)){//ok
+            tope = pila_ver_tope(auxiliar);
             operador_t *tope_aux = buscar(operadores, oplen, element->elemento);
-            if(tope_aux == NULL){
+            if(tope_aux == NULL && strcmp(element->elemento ,"(") != 0 && strcmp(element->elemento ,")") != 0){
                 cola_destruir(salida,destruir_elemento);
                 pila_destruir(auxiliar,destruir_elemento);
                 printf("Operador %s inválido!\n", element->elemento);
@@ -260,6 +260,7 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
             if(!pila_apilar(auxiliar, element)){
                 cola_destruir(salida,destruir_elemento);
                 pila_destruir(auxiliar,destruir_elemento);
+                return NULL;
             }
             continue;
         }
@@ -274,12 +275,12 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
             }
             
             operador_t *tope_aux = buscar(operadores, oplen, tope->elemento);
-            /*if(tope_aux == NULL){// no se bien porque esta esto aca, pero capaz se puede borrar
+            if(tope_aux == NULL){// no se bien porque esta esto aca, pero capaz se puede borrar
                 cola_destruir(salida,destruir_elemento);
                 pila_destruir(auxiliar,destruir_elemento);
                 printf("Operador %s inválido!", tope->elemento);
                 return NULL;
-            }*/
+            }
             
             operador_t *element_aux = buscar(operadores, oplen, element->elemento);
             if(tope_aux == NULL){// lo mismo que arriba
@@ -312,6 +313,7 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
             tope = pila_desapilar(auxiliar);
             if(tope == NULL){
                 printf("escribiste mal flaco lo primero");// aca que onda? deberia frenar todo? capaz si
+                elemento_destruir(element);
                 return NULL; //puse este return NULL
                 continue;
             }
@@ -324,17 +326,21 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
             }
             if(tope == NULL){//o es NULL o es "("
                 printf("Error, nunca abriste el paréntesis.");
+                elemento_destruir(element);
                 cola_destruir(salida,destruir_elemento);
                 pila_destruir(auxiliar,destruir_elemento);
                 return NULL;
             }
+            elemento_destruir(tope);
             if((tope = pila_ver_tope(auxiliar)) != NULL  && tope->tipo == FUNCION){
                 if(!cola_encolar(salida, pila_desapilar(auxiliar))){
                     cola_destruir(salida,destruir_elemento);
                     pila_destruir(auxiliar,destruir_elemento);
                 }
+                elemento_destruir(element);
                 continue;
             }
+            elemento_destruir(element);
             continue;    
         }
     }
@@ -861,10 +867,10 @@ void tabla_destruir(operador_t **tabla, size_t tablen){
 int main(int argc, char *argv[]){
     if (argc > 2) return 1;
     size_t oplen = 0;
-    /*if (argc == 1){
+    if (argc == 1){
         printf("escribir %s ayuda",argv[0]);
         return 0;
-    }*/
+    }
     operador_t **operadores = tabla_crear(&oplen);
     if (strcmp(argv[1],"ayuda") == 0){
         printf("Calculadora TA130\n");

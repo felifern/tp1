@@ -362,19 +362,31 @@ racional_t *racional_dividir(const racional_t *q, const racional_t *r){
 }
 
 racional_t *racional_factorial(const racional_t *q){
-    if (entero_comparar(q->d, entero_uno()) != 0 || q->s == true) return NULL;// esto va a terner una leak, porque cada vez que comparo hago un num(estoy probando)
+    entero_t *uno = entero_uno();
+    if (entero_comparar(q->d, uno) != 0 || q->s == true){
+        entero_destruir(uno);
+        return NULL;
+    }
+    // esto va a terner una leak, porque cada vez que comparo hago un num(estoy probando)
     entero_t *nuevo_n = entero_clonar(q->n);
-    if (nuevo_n == NULL) return NULL;
+    if (nuevo_n == NULL) {
+        entero_destruir(uno);
+        return NULL;
+    }
 
     if (!entero_factorial(nuevo_n)){
+        entero_destruir(uno);
         entero_destruir(nuevo_n);
         return NULL;
     } 
     racional_t *nuevo_q = racional_crear(q->s,nuevo_n,q->d);
     if (nuevo_q == NULL){
+        entero_destruir(uno);
         entero_destruir(nuevo_n);
         return NULL;
     }
+    entero_destruir(uno);
+    entero_destruir(nuevo_n);
     return nuevo_q;
 }
 
