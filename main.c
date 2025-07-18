@@ -5,7 +5,6 @@
 #include "racional.h"
 #include "cola.h"
 #include "lista.h"
-#include "operador.h"
 #include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
@@ -69,6 +68,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
         }
         if (c == '.'){
             cola_destruir(cola,destruir_elemento);
+            while ((c = getchar()) != EOF && c != '\n');
             return NULL;
         }
         if (isdigit(c)){
@@ -76,6 +76,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             char *num = malloc(sizeof(char) * 2);
             if(num == NULL){
                 cola_destruir(cola, destruir_elemento);
+                while ((c = getchar()) != EOF && c != '\n');
                 return NULL;
             }
             num[0] = c;
@@ -89,6 +90,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
                 if (aux == NULL){
                     free(num);
                     cola_destruir(cola,destruir_elemento);
+                    while ((c = getchar()) != EOF && c != '\n');
                     return NULL;
                 }
                 num = aux;
@@ -99,17 +101,20 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             if(n_puntos == 1 &&  num[j-1] == '.'){
                 free(num);
                 cola_destruir(cola, destruir_elemento);
+                while ((c = getchar()) != EOF && c != '\n');
                 return NULL;
             }
             if(n_puntos == 2){
                 free(num);
                 cola_destruir(cola, destruir_elemento);
+                while ((c = getchar()) != EOF && c != '\n');
                 return NULL;
             }
             elemento = malloc(sizeof(elemento_t));
             if (elemento == NULL){
                 free(num);
                 cola_destruir(cola, destruir_elemento);
+                while ((c = getchar()) != EOF && c != '\n');
                 return NULL;
             }
             elemento->elemento = num;
@@ -119,6 +124,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
                 free(elemento->elemento);
                 free (elemento);
                 cola_destruir(cola,destruir_elemento);
+                while ((c = getchar()) != EOF && c != '\n');
                 return NULL;
             }
 
@@ -129,6 +135,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             char *fun = malloc(sizeof(char) * 2); 
             if(fun == NULL){
                 cola_destruir(cola, destruir_elemento);
+                while ((c = getchar()) != EOF && c != '\n');
                 return NULL;
             }
             fun[0] = c;
@@ -138,6 +145,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
                 if(aux == NULL) {
                     free(fun);
                     cola_destruir(cola, destruir_elemento);
+                    while ((c = getchar()) != EOF && c != '\n');
                     return NULL;
                 } 
                 fun = aux;
@@ -150,6 +158,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             if (elemento == NULL){
                 free(fun);
                 cola_destruir(cola, destruir_elemento);
+                while ((c = getchar()) != EOF && c != '\n');
                 return NULL;
             }
             elemento->elemento = fun;
@@ -158,6 +167,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
                 free(elemento->elemento); 
                 free(elemento);
                 cola_destruir(cola, destruir_elemento);
+                while ((c = getchar()) != EOF && c != '\n');
                 return NULL;
             }
 
@@ -167,6 +177,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             char *operador = malloc(sizeof(char) * 2); 
             if(operador == NULL){
                 cola_destruir(cola, destruir_elemento);
+                while ((c = getchar()) != EOF && c != '\n');
                 return NULL;
             }
             operador[0] = c;
@@ -177,6 +188,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             if (elemento == NULL){
                 free(operador);
                 cola_destruir(cola, destruir_elemento);
+                while ((c = getchar()) != EOF && c != '\n');
                 return NULL;
             }
             elemento->elemento = operador;
@@ -185,6 +197,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
                 free(elemento->elemento); 
                 free(elemento);
                 cola_destruir(cola, destruir_elemento);
+                while ((c = getchar()) != EOF && c != '\n');
                 return NULL;
             }
             continue;
@@ -193,6 +206,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             char *operador = malloc(sizeof(char) * 2); 
             if(operador == NULL){
                 cola_destruir(cola, destruir_elemento);
+                while ((c = getchar()) != EOF && c != '\n');
                 return NULL;
             }
             operador[0] = c;
@@ -203,6 +217,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             if (elemento == NULL){
                 free(operador);
                 cola_destruir(cola, destruir_elemento);
+                while ((c = getchar()) != EOF && c != '\n');
                 return NULL;
             }
             elemento->elemento = operador;
@@ -211,6 +226,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
                 free(elemento->elemento); 
                 free(elemento);
                 cola_destruir(cola, destruir_elemento);
+                while ((c = getchar()) != EOF && c != '\n');
                 return NULL;
             }
             
@@ -218,6 +234,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
         }
         else{
             cola_destruir(cola,destruir_elemento);
+            while ((c = getchar()) != EOF && c != '\n');
             return NULL;
         }
     }
@@ -278,7 +295,7 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
             if(tope_aux == NULL){// no se bien porque esta esto aca, pero capaz se puede borrar
                 cola_destruir(salida,destruir_elemento);
                 pila_destruir(auxiliar,destruir_elemento);
-                printf("Operador %s inválido!", tope->elemento);
+                printf("Operador %s inválido!\n", tope->elemento);
                 return NULL;
             }
             
@@ -312,7 +329,6 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
         if(element->tipo == PARENTESIS && strcmp(element->elemento, ")") == 0){ 
             tope = pila_desapilar(auxiliar);
             if(tope == NULL){
-                printf("escribiste mal flaco lo primero");// aca que onda? deberia frenar todo? capaz si
                 elemento_destruir(element);
                 return NULL; //puse este return NULL
                 continue;
@@ -325,7 +341,7 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
                 tope = pila_desapilar(auxiliar);
             }
             if(tope == NULL){//o es NULL o es "("
-                printf("Error, nunca abriste el paréntesis.");
+                printf("Error, nunca abriste el paréntesis.\n");
                 elemento_destruir(element);
                 cola_destruir(salida,destruir_elemento);
                 pila_destruir(auxiliar,destruir_elemento);
@@ -348,14 +364,17 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
     tope = pila_ver_tope(auxiliar);
     while((tope = pila_desapilar(auxiliar))!= NULL){
         if(strcmp(tope->elemento,"(")== 0){
-            printf("Error, no se cerro nunca el parentesis");
+            printf("Error, no se cerro nunca el parentesis.\n");
+            elemento_destruir(tope);
             cola_destruir(salida,destruir_elemento);
             pila_destruir(auxiliar,destruir_elemento);
             return NULL;
         }
         if(!cola_encolar(salida ,tope)){
+            elemento_destruir(tope);
             cola_destruir(salida,destruir_elemento);
             pila_destruir(auxiliar,destruir_elemento);
+            return NULL;
         }
     }
     pila_destruir(auxiliar,destruir_elemento);
@@ -424,12 +443,13 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
                     pila_destruir(pila, destruir_racional);
                     //cola_destruir(polaca,destruir_elemento);
                     racional_destruir(b);
+                    elemento_destruir(simbolo);
                     return NULL;
                 }
             }
             racional_t *resultado = funcion(a,b);
-            racional_destruir(a);
-            racional_destruir(b);
+            if (a) racional_destruir(a);
+            if (b) racional_destruir(b);
             if (resultado == NULL){
                     //cola_destruir(polaca,destruir_elemento);
                     pila_destruir(pila,destruir_racional);
