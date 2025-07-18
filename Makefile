@@ -1,10 +1,10 @@
 CFLAGS=-std=c99 -pedantic -Wall -Werror -c -g
 LFLAGS=-lm
 
-all:programa
+all:calculadora
 
-programa: main.o racional.o entero.o pila.o cola.o 
-	gcc main.o racional.o entero.o pila.o cola.o -o programa $(LFLAGS)
+calculadora: main.o racional.o entero.o pila.o cola.o 
+	gcc main.o racional.o entero.o pila.o cola.o -o calculadora $(LFLAGS)
 
 main.o: main.c racional.h entero.h 
 	gcc main.c $(CFLAGS)
@@ -23,4 +23,4 @@ entero.o: entero.c entero.h
 	gcc entero.c $(CFLAGS)
 
 clean:
-	rm *.o programa
+	rm *.o calculadora
