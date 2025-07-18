@@ -725,9 +725,11 @@ char *racional_a_cadena(const racional_t *numero, char* acc){
                 return NULL;
             }
             nuevo = aux;
-            nuevo [0] =  '0';
-            nuevo [1] = '.';
-            i += 2;
+            if(racional_es_negativo(numero)==true){
+                nuevo[i++]= '-';
+            }
+            nuevo [i++] =  '0';
+            nuevo [i++] = '.';
             
             while (entero_comparar(entero_largo,precision) != 0){
                 aux = realloc(nuevo, i + 2);
@@ -843,6 +845,10 @@ char *racional_a_cadena(const racional_t *numero, char* acc){
             return NULL;
         }
         nuevo = aux;
+        if(racional_es_negativo(numero) == true && i == 0){
+        nuevo[i]= '-';
+        i++;
+        }
         nuevo[i] = dev[j];
         i++;
         j++;
