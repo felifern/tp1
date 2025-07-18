@@ -245,17 +245,17 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
             }
             continue;
         }
-        if(element->tipo == FUNCION || (element->tipo == PARENTESIS && strcmp(element->elemento, "(") == 0)){//ok
+        if(element->tipo == FUNCION /*|| (element->tipo == PARENTESIS && strcmp(element->elemento, "(") == 0)*/){//ok
             //tope = pila_ver_tope(auxiliar);
-            //operador_t *tope_aux = buscar(operadores, oplen, element->elemento);
-            /*if(tope_aux == NULL){
+            operador_t *tope_aux = buscar(operadores, oplen, element->elemento);
+            if(tope_aux == NULL){
                 cola_destruir(salida,destruir_elemento);
                 pila_destruir(auxiliar,destruir_elemento);
                 printf("Operador %s inválido!\n", element->elemento);
                 elemento_destruir(element);
 
                 return NULL;
-            }*/
+            }
 
             if(!pila_apilar(auxiliar, element)){
                 cola_destruir(salida,destruir_elemento);
@@ -274,12 +274,12 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
             }
             
             operador_t *tope_aux = buscar(operadores, oplen, tope->elemento);
-            if(tope_aux == NULL){// no se bien porque esta esto aca, pero capaz se puede borrar
+            /*if(tope_aux == NULL){// no se bien porque esta esto aca, pero capaz se puede borrar
                 cola_destruir(salida,destruir_elemento);
                 pila_destruir(auxiliar,destruir_elemento);
                 printf("Operador %s inválido!", tope->elemento);
                 return NULL;
-            }
+            }*/
             
             operador_t *element_aux = buscar(operadores, oplen, element->elemento);
             if(tope_aux == NULL){// lo mismo que arriba
