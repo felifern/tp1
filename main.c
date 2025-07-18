@@ -68,6 +68,7 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             continue;
         }
         if (c == '.'){
+            cola_destruir(cola,destruir_elemento);
             return NULL;
         }
         if (isdigit(c)){
@@ -216,12 +217,13 @@ cola_t *leer_linea(){ //lee linea "123+fact(5*3)\n" y guarda en una cola {"123",
             continue;
         }
         else{
-            c = getchar();
+            cola_destruir(cola,destruir_elemento);
+            return NULL;
         }
     }
     return cola;
 }
-//esto esta perfecto
+
 cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){// recibo una cola con los elementos_t
 
     cola_t *salida = cola_crear();
@@ -245,15 +247,15 @@ cola_t *pasar_a_postfija(cola_t *infija, operador_t **operadores, size_t oplen){
         }
         if(element->tipo == FUNCION || (element->tipo == PARENTESIS && strcmp(element->elemento, "(") == 0)){//ok
             //tope = pila_ver_tope(auxiliar);
-            operador_t *tope_aux = buscar(operadores, oplen, element->elemento);
-            if(tope_aux == NULL){
+            //operador_t *tope_aux = buscar(operadores, oplen, element->elemento);
+            /*if(tope_aux == NULL){
                 cola_destruir(salida,destruir_elemento);
                 pila_destruir(auxiliar,destruir_elemento);
                 printf("Operador %s inválido!\n", element->elemento);
                 elemento_destruir(element);
 
                 return NULL;
-            }
+            }*/
 
             if(!pila_apilar(auxiliar, element)){
                 cola_destruir(salida,destruir_elemento);
@@ -361,7 +363,7 @@ racional_t *cadena_a_racional(char *numero);
 racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t oplen){ //llegamos aca con la notacion bien escrita (cualquier error se detecta cuando paso de infija a postfija)
     pila_t *pila = pila_crear(); //va a ser una pila con racionales_t
     if (pila == NULL){
-        cola_destruir(polaca,destruir_elemento);
+        //cola_destruir(polaca,destruir_elemento);
         return NULL;
     }
 
@@ -371,7 +373,9 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
             racional_t *numero = cadena_a_racional(simbolo->elemento);//falta implementar una funcion q pase de cadena a racional_t (o ver como hacerlo con las funciones q ya tenemos)
             if (!pila_apilar(pila, numero)){
                 pila_destruir(pila, destruir_racional);
-                cola_destruir(polaca,destruir_elemento);
+                //cola_destruir(polaca,destruir_elemento);
+                elemento_destruir(simbolo);
+                racional_destruir(numero);
                 return NULL;
             }
         }
@@ -380,7 +384,8 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
             operador_t *operador = buscar(operadores, oplen, simbolo->elemento);
             if (operador == NULL){
                 pila_destruir(pila, destruir_racional);
-                cola_destruir(polaca, destruir_elemento);
+                //cola_destruir(polaca, destruir_elemento);
+                elemento_destruir(simbolo);
                 return NULL;
             }
             
@@ -393,7 +398,9 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
                 a = pila_desapilar(pila);
                 if (a == NULL){
                     pila_destruir(pila, destruir_racional);
-                    cola_destruir(polaca,destruir_elemento);
+                    //cola_destruir(polaca,destruir_elemento);
+                    elemento_destruir(simbolo);
+                    
                     return NULL;
                 }
             }
@@ -402,13 +409,14 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
                 b = pila_desapilar(pila);
                 if (b == NULL){
                     pila_destruir(pila, destruir_racional);
-                    cola_destruir(polaca,destruir_elemento);
+                    //cola_destruir(polaca,destruir_elemento);
+                    elemento_destruir(simbolo);
                     return NULL;
                 }
                 a = pila_desapilar(pila);
                 if (a == NULL){
                     pila_destruir(pila, destruir_racional);
-                    cola_destruir(polaca,destruir_elemento);
+                    //cola_destruir(polaca,destruir_elemento);
                     racional_destruir(b);
                     return NULL;
                 }
@@ -417,8 +425,9 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
             racional_destruir(a);
             racional_destruir(b);
             if (resultado == NULL){
-                    cola_destruir(polaca,destruir_elemento);
+                    //cola_destruir(polaca,destruir_elemento);
                     pila_destruir(pila,destruir_racional);
+                    elemento_destruir(simbolo);
                     return NULL;
             }
             pila_apilar(pila, resultado);
@@ -431,7 +440,7 @@ racional_t *operar_postfija(cola_t *polaca, operador_t **operadores, size_t ople
     if (resultado_final == NULL || !pila_esta_vacia(pila)){
         pila_destruir(pila, destruir_racional);
         if (resultado_final != NULL) racional_destruir(resultado_final);
-        cola_destruir(polaca,destruir_elemento);  
+        //cola_destruir(polaca,destruir_elemento);  
         return NULL;     
     }
     pila_destruir(pila,destruir_racional);
@@ -852,10 +861,10 @@ void tabla_destruir(operador_t **tabla, size_t tablen){
 int main(int argc, char *argv[]){
     if (argc > 2) return 1;
     size_t oplen = 0;
-    if (argc == 1){
+    /*if (argc == 1){
         printf("escribir %s ayuda",argv[0]);
         return 0;
-    }
+    }*/
     operador_t **operadores = tabla_crear(&oplen);
     if (strcmp(argv[1],"ayuda") == 0){
         printf("Calculadora TA130\n");
@@ -877,7 +886,7 @@ int main(int argc, char *argv[]){
                 printf("%s: %s\n", operadores[i]->operador, operadores[i]->descripcion);
             }
         }
-        //tabla_destruir
+        tabla_destruir(operadores, oplen);
         return 0;
     }
 
@@ -885,31 +894,30 @@ int main(int argc, char *argv[]){
         cola_t *input_infija = leer_linea();
         if (input_infija == NULL){
             tabla_destruir(operadores, oplen);
-            printf("error fatal.");
-            return 1;
+            printf("Gracias por usar nuestra calculadora.\n");
+            return 0;
         }
         cola_t *input_postfija = pasar_a_postfija(input_infija, operadores, oplen);
         cola_destruir(input_infija, destruir_elemento);
-        if (input_postfija == NULL){
-            
+        if (input_postfija == NULL){ 
             tabla_destruir(operadores, oplen);
-            printf("error fatal");
+            //error al convertirse en postfija
             return 1;
         }
         racional_t *resultado = operar_postfija(input_postfija, operadores, oplen);
-        cola_destruir(input_postfija,destruir_elemento);
         if (resultado == NULL){
-            printf("error fatal.");
+            printf("Cantidad inválida de parámetros para los operadores!\n");
             cola_destruir(input_postfija, destruir_elemento);
             tabla_destruir(operadores, oplen);
             return 1;
         }
+        cola_destruir(input_postfija,destruir_elemento);
+
         if (argc == 1){
             //si no aclaran nada se imprime con 8 digitos de precision
             char *rta = racional_a_cadena(resultado, "8");
             racional_destruir(resultado);
             if (rta == NULL){
-                printf("error fatal.");
                 tabla_destruir(operadores, oplen);
                 return 1;
             }
@@ -920,7 +928,6 @@ int main(int argc, char *argv[]){
             if (!racional_imprimir(resultado)){
                 racional_destruir(resultado);
                 tabla_destruir(operadores, oplen);
-                printf("error fatal.");
 
                 return 1;
             }
@@ -933,7 +940,6 @@ int main(int argc, char *argv[]){
             if (rta == NULL){
                 tabla_destruir(operadores, oplen);
                 return 1;
-                printf("error fatal.");
 
             }
             printf("la respuesta es: %s\n",rta);
