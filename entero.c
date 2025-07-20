@@ -535,7 +535,7 @@ void imprimir_resultados(entero_t *division, const entero_t *resto, entero_t *en
 
 }
 
-bool entero_multiplicar2(entero_t *a, const entero_t *b) {
+bool multiplicacion_clasica(entero_t *a, const entero_t *b) {
     entero_t *aa = _crear(1);
     if(aa == NULL) return false;
 
@@ -577,6 +577,17 @@ bool entero_multiplicar2(entero_t *a, const entero_t *b) {
 }
 
 bool entero_multiplicar(entero_t *a, const entero_t *b){// PRIMERO ANTES QUE NADA HABRIA QUE IGUALAR LOS DIGITOS DE LOS NUMEROS (LLENAR CON 0s A IZQ) 
+    int limite_karatsuba = 8;
+    if (a->n <= limite_karatsuba || b->n <= limite_karatsuba){
+        entero_t *b_copy = entero_clonar(b);
+        if (!b_copy) return false;
+        bool ok = multiplicacion_clasica(a, b_copy);
+        entero_destruir(b_copy);
+        return ok;
+    }
+    
+    
+    
     //supongo que tienen igual longitud, para pensar el programa primero (pero falta esto de arriba)
     //yo creo que esto de la longitud se puede resolver rapido con una terna, pero no tengo muy claro como se usa
     if(a == NULL || b == NULL) return false;
@@ -997,6 +1008,10 @@ bool entero_es_par(const entero_t *e){
 
 
 bool entero_factorial(entero_t *n){
+    printf("→ Calculando factorial de: ");
+    entero_imprimir(n);
+    printf("\n");
+
     if(n == NULL) return false;
     entero_t *cero = entero_cero();
     if(cero == NULL) return false;
@@ -1006,10 +1021,9 @@ bool entero_factorial(entero_t *n){
         return false;
     }
     if(entero_comparar(n,  cero) == 0 || entero_comparar(n,  uno) == 0){
-        free(n->d);
         n->n = 1;
-        n->d = uno->d;
-        free(uno);
+        n->d[0] = uno->d[0];
+        entero_destruir(uno);
         entero_destruir(cero);
         return true;
     }
@@ -1024,16 +1038,22 @@ bool entero_factorial(entero_t *n){
             entero_destruir(uno);
             entero_destruir(cero);
             entero_destruir(nc);
+            return false;
+
         }
         if(!entero_factorial(nc)){
             entero_destruir(uno);
             entero_destruir(cero);
             entero_destruir(nc);
+            return false;
+
         }
         if(!entero_multiplicar(n, nc)){
             entero_destruir(uno);
             entero_destruir(cero);
             entero_destruir(nc);
+            return false;
+
         }
         entero_destruir(cero);
         entero_destruir(uno);
